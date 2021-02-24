@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% let verified; %>
+    <% if (user.verified) verified = " ✔" %>
+    <% if (!user.verified) verified = "" %>
+    <% if (user.nickname) name = user.nickname; %>
+    <% if (!user.nickname) name = user.user %>
+    <%- include('../meta/index', { page: name + verified, url: `user/${user.user}` }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/user/" + user.user, pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+            <div class="center-container">
+            <% if (image) { %>
+            <% if (image.filename === `${user.userid}-${user._id}.png`) { %>
+                <img src="/img/<%- user.userid %>-<%- user._id %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;">
+            <% }} else {  } %>
+            <% if (user.nickname) { %>
+                <% let i; %>
+                <% let an; %>
+                <% let name = user.nickname.toUpperCase() %>
+                <% for (i = 0; i < Name.length; i++) { %>
+                <% if (Name[i].name == name) { an = true } %>
+                <% } %>
+                <% if (an) { %>
+                <h2 class="bold" <% if (user.verified) { %> style="color: pink;" <% } %> ><%= user.user %><% if (user.verified) { %> <img style="width: 25px; height: 25px;" src="/image/check.png" title="This user is verified by the owner of KaiURL.xyz"> <% } %></h2>
+                <% } else { %>
+                <h2 class="bold" <% if (user.verified) { %> style="color: pink;" <% } %> ><%= user.nickname %><% if (user.verified) { %> <img style="width: 25px; height: 25px;" src="/image/check.png" title="This user is verified by the owner of KaiURL.xyz"> <% } %></h2>
+                <% }} else { %>
+                <h2 class="bold" <% if (user.verified) { %> style="color: pink;" <% } %> ><%= user.user %><% if (user.verified) { %> <img style="width: 25px; height: 25px;" src="/image/check.png" title="This user is verified by the owner of KaiURL.xyz"> <% } %></h2>
+                <% } %>
+            <% if (user.description) { %>
+            <p>
+                <%- user.description %>
+            </p>
+            <% } %>
+            <p>
+                Number of URLs:<br>
+                <%= uUrl.length %>
+            </p>
+            <% if (u) { %>
+                <% if (u.userid === user.userid) { %>
+                    <a href="/account">Edit Account</a>
+            <% }} %>
+        </div> <br><br>
+        <% if (user.twitter || user.youtube || user.discord) { %>
+        <div class="center-container">
+                <p>
+                    Links:
+                </p>
+                <% if (user.twitter) { %>
+                <p>
+                    <a href="https://twitter.com/<%- user.twitter %>" target="_" class="link">Twitter</a>
+                </p>
+                <% } else { } %>
+                <% if (user.youtube) { %>
+                <p>
+                    <a href="https://www.youtube.com/<%= user.youtube %>" target="_" class="link">Youtube</a>
+                </p>
+                <% } else { } %>
+                <% if (user.discord) { %>
+                <p>
+                    <%= user.discord %>
+                </p>
+                <% } else { } %>
+                <% if (user.glimesh) { %>
+                <p>
+                    <a href="https://glimesh.tv/<%= user.glimesh %>" target="_" class="link">Glimesh</a>
+                </p>
+                <% } else { } %>
+        </div>
+        <% } %>
+    </div>
+</div>
+</body>
+</html>

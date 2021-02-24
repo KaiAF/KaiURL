@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Home", url: "" }); %>
+    <script>
+        function copy() {
+          var copyText = document.getElementById("copyText");
+          copyText.select();
+          copyText.setSelectionRange(0, 99999)
+          document.execCommand("copy");
+          alert("Copied the text: " + copyText.value);
+        }
+    </script>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/shrink", pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <h3>ShortURL was created.</h3>
+            <% if (url.userID == null) { %>
+            <% if (url.Domain == 'kaiurl.xyz') { %>
+                <input class="form-input" type="text" value="https://www.kaiurl.xyz/<%- url.short %>" id="copyText"></input>
+                <p>[<a href="#" onclick="copy()" class="title">Copy to clipboard</a>] [<a class="title" href="/<%- url.short %>">Go to URL</a>]</p>
+            <% } else { %>
+                <input class="form-input" type="text" value="https://www.shrturl.link/<%- url.short %>" id="copyText"></input>
+                <p>[<a href="#" onclick="copy()" class="title">Copy to clipboard</a>] [<a class="title" href="https://www.shrturl.link/<%- url.short %>">Go to URL</a>]</p>
+            <% }} else { %>
+                <% if (url.Domain == 'kaiurl.xyz') { %>
+                <input class="form-input" type="text" value="https://www.kaiurl.xyz/<%- u.user %>/<%- url.short %>" id="copyText"></input>
+                <p>[<a href="#" onclick="copy()" class="title">Copy to clipboard</a>] [<a class="title" href="/<%- u.user %>/<%- url.short %>">Go to URL</a>]</p>
+                <% } else { %>
+                    <input class="form-input" type="text" value="https://www.shrturl.link/<%- u.user %>/<%- url.short %>" id="copyText"></input>
+                <p>[<a href="#" onclick="copy()" class="title">Copy to clipboard</a>] [<a class="title" href="https://www.shrturl.link/<%- u.user %>/<%- url.short %>">Go to URL</a>]</p>
+                <% }} %>
+        </div>
+    </div>
+</body>
+</html>

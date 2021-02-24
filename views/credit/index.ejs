@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Credit", url: "credit" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "credit", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div>
+            <center>
+                <h3>Credits</h3>
+            </center>
+            <div style="padding: 20px; float: left;" class="credit">
+                <div>Icons made by <a class="title" href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a class="title" href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> <img alt="verified" src="/image/check.png" style="width: 15px; height: 15px;"> </div>
+                <div>Icons made by <a class="title" href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">Pixel perfect</a> from <a class="title" href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> <img alt="Discord" src="/image/discord.png" style="width: 15px; height: 15px;"> </div>
+            </div>
+            <div style="padding: 20px;" class="thanks">
+            <p><b>Thanks to these artist for allowing me to use their art free. I really recommend to look at their work if you are interested in web design.</b></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

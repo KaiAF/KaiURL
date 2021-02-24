@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "URLs", url: "u" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/u", pageName: "URLs" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <h3>If a URL has a '✔' at the end, this means its an official URL.</h3>
+            <div class="u">
+                <center>
+                <table id="container">
+                    <tr>
+                        <th>Short URL</th><th>Show URL Details</th>
+                    </tr>
+                    <tbody>
+                        <% r.forEach(short => { %>
+                        <% if (short.removed) { %>
+                            <% return %>
+                        <% } %>
+                        <tr>
+                        <% if (short.Domain === 'shrturl.link') { %>
+                            <td>
+                                <% if (!theme) { %>
+                              <a id="id" class="title" style="color: rgb(22, 85, 22)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
+                              <% } else if (theme == 'dark') { %>
+                                <a id="id" class="title" style="color: rgb(32, 136, 32)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
+                                <% } else { %>
+                                    <a id="id" class="title" style="color: rgb(22, 85, 22)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
+                                <% } %>
+                              <% if (short.official) { %>
+                                ✔
+                                <% }} else { %>
+                                    <td>
+                                      <a id="id" class="title" href="/<%= short.short %>" target="__blank" title="<%= short.full %>">https://www.kaiurl.xyz/<%= short.short %>  </a>
+                                      <% if (short.official) { %>
+                                        ✔
+                                        <% } %>
+                                      <% } %>
+                        </td>
+                            <td class="find"><a class="whitetitle" href="/r/<%= short.short %>/find" target="_" title="<%= short.full %>">/find</a></td>
+                        </tr>
+                       <% }) %>
+                    </tbody>
+                </table>
+            </center>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

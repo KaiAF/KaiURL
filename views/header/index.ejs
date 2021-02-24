@@ -1,0 +1,40 @@
+<% if (page == "/") { %> <a style="color: #28a745;" href="/">Home</a> <% } else { %> <a href="/">Home</a> <% } %>
+<% if (page == "/u") { %> <a style="color: #28a745;" href="/u">URLs</a> <% } else { %> <a href="/u">URLs</a> <% } %>
+<% if (page == "/contact") { %> <a style="color: #28a745;" href="/contact">Contact</a> <% } else { %> <a href="/contact">Contact</a> <% } %>
+<% if (page == "/tos") { %> <a style="color: #28a745;" href="/tos">Terms of Service</a> <% } else { %> <a href="/tos">Terms of Service</a> <% } %>
+<% if (page == "/about") { %> <a style="color: #28a745;" href="/about">About</a> <% } else { %> <a href="/about">About</a> <% } %>
+<% if (!u) { %>
+<% if (page == "/login") { %> <a style="color: #28a745;" href="/login">Log In</a> <% } else { %> <a href="/login">Log In</a> <% } %>
+<% } else { %>
+<% if (page == "/account") { %> <a style="color: #28a745;" href="/account">Account</a> <% } else { %> <a href="/account">Account</a> <% } %>
+<a href="/logout">Log out</a>
+<% } %>
+<form class="change-theme" method="POST" action="/api/change-theme?page=<%- page %>">
+<% if (theme) { %>
+    <% if (theme == "dark") { %>
+        <button type="submit" class="change-theme-button"><a>Theme: 🌕</a></button>
+    <% } else { %>
+        <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button>
+    <% }} else { %>
+        <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button>
+        <% } %>
+</form>
+<a href="/r/twitter"><img alt="Twitter" style="vertical-align:middle;" src="https://abs.twimg.com/favicons/twitter.ico"> Twitter</a>
+<a href="/r/source"><img alt="GitHub" style="vertical-align: middle; width: 32px; height: 32px;" src="https://github.com/fluidicon.png"> GitHub</a>
+<% if (page === "/account") { %>
+    <script defer>
+        // This is to get the account info
+        $.get("/api/account", function( data ) {
+          $( ".result" ).html( data );
+        });
+    </script>
+<% } %>
+<% if (u) { %>
+<% if (page === "/user/" + u.user) { %>
+    <script>
+        fetch("/api/account", {
+            method: 'get'
+        })
+    </script>
+<% } %>
+<% } %>

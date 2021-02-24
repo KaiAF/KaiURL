@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Edit Account", url: "account/edit" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/account", pageName: "Account" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+            <div class="center-container">
+            <p class="error" id="error"></p>
+            <% if (!image) { %>
+                <form class="form" action="/img" method="POST" enctype="multipart/form-data">
+                    <input name="Image" type="file">
+                    <button type="submit" class="form-button">Submit</button>
+                </form>
+                <% } else { %>
+                <form class="form" action="/img/delete" method="POST" enctype="multipart/form-data">
+                    <button type="submit" class="form-button">Delete Avatar</button>
+                </form>
+                <% } %>
+            <form class="form" id="form-nickname">
+                <label for="nickname" class="form-label">Change Nickname:</label><br>
+                <input name="nickname" type="text" class="form-input" id="nickname" placeholder="<% if (u.nickname) { %><%- u.nickname %> <% } else { %><%- u.user %><% } %>" autocomplete="off" spellcheck="off" required>
+                <button type="submit" class="form-button">Change Nickname</button>
+            </form>
+            <form class="form" id="form-desc">
+                <label for="desc" class="form-label">Change Description:</label><br>
+                <input name="desc" type="text" class="form-input" id="desc" placeholder="<% if (u.description) { %><%- u.description %><% } else { %>Description<% } %>" autocomplete="off" spellcheck="off">
+                <button type="submit" class="form-button">Change Description</button>
+            </form>
+            <form class="form" id="form-twitter">
+                <label for="twitter" class="form-label">Link Twitter:</label><br>
+                <input name="twitter" type="text" class="form-input" id="twitter" placeholder="https://twitter.com/<% if (u.twitter) { %><%- u.twitter %> <% } %>" autocomplete="off" spellcheck="off">
+                <button type="submit" class="form-button">Link</button>
+            </form>
+            <form class="form" id="form-youtube">
+                <label for="youtube" class="form-label">Link Youtube:</label><br>
+                <input name="youtube" type="text" class="form-input" id="youtube" placeholder="https://www.youtube.com/<% if (u.youtube) { %><%- u.youtube %> <% } %>" autocomplete="off" spellcheck="off">
+                <button type="submit" class="form-button">Link</button>
+            </form>
+            <form class="form" id="form-discord">
+                <label for="discord" class="form-label">Link Discord:</label><br>
+                <input name="discord" type="text" class="form-input" id="discord" placeholder="<% if (u.discord) { %><%- u.discord %> <% } else { %>user#0000<% } %>" autocomplete="off" spellcheck="off">
+                <button type="submit" class="form-button">Link</button>
+            </form>
+            <form class="form" id="form-glimesh">
+                <label for="glimesh" class="form-label">Link Glimesh Account:</label><br>
+                <input name="glimesh" type="text" class="form-input" id="glimesh" placeholder="https://glimesh.tv/<% if (u.glimesh) { %><%- u.glimesh %> <% } %>" autocomplete="off" spellcheck="off">
+                <button type="submit" class="form-button">Link</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script defer src="/js/form.js"></script>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "kaipaste", url: "/kaipaste" }) %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/shrink", pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+            <form class="form" style="padding-top:20px" action="/kaipaste/<%- text.title %>/<%- text.id %>/edit-t" method="post">
+                <div class="form-item">
+                    <input disabled class="form-input" placeholder="Edit '<%= text.title %>'" type="text"><br>
+                    <label for="textInput">Change description:</label>
+                    <textarea class="form-input" required name="text" id="textInput"><%= text.description %></textarea> <br>
+                </div>
+                <button class="form-button" type="submit">Submit</button>
+              </form>
+        </div>
+    </div>
+</body>
+</html>

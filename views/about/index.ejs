@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "About", url: "about" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/about", pageName: "about" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div>
+        <center>
+            <img src="/icon.ico" style="border-radius: 50%; width: 120px; height: 120px;">
+          </center>
+          <div style="padding: 20px; float: left;" class="about">
+            <p>KaiURL is a URL shortener designed by KAI. This website will have multiple uses, Like having the ability to follow users. This is more of a project for myself, to learn as much as I can.</p>
+            <p>This website was originally designed to be only a URL shortener. But I decided to use it for.. well anything I'd like. This is my own website after all. I plan on learning a lot more, and implementing a lot more into this website.</p>
+            <p>So. If you'd like to ask any more questions, or just get into contact with me, please go to <a href="/contact" class="title">the contact page.</a></p>
+            <p><i>Also. Go check out the <a href="/credit" class="title">credit page</a></i></p>
+            <br>
+            <a class="title" href="/r/about">More about KAI</a>
+          </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Register", url: "register" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <p class="error" id="error"></p>
+            <p>Log in with KaiURL.xyz account:</p>
+            <center>
+            <form class="form" id="form-register">
+                <div class="form-item">
+                    <label class="form-label" for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                </div>
+                <div class="form-item">
+                    <label class="form-label" for="username">Username:</label>
+                    <input type="text" id="username" name="username" class="form-input" required>
+                </div>
+                <div class="form-item">
+                    <label class="form-label" for="password">Password:</label>
+                    <input type="password" class="form-input" name="password" id="password" required>
+                </div>
+                <button class="form-button" type="submit">Register</button>
+            </form>
+        </center>
+        <a href="/api/login/discord">Log in with Discord</a><br><br>
+        <a href="/login">Have an account? Log in here</a>
+        </div>
+    </div>
+</body>
+</html>
+<script defer src="/js/form.js"></script>

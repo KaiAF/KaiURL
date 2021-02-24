@@ -98,10 +98,12 @@ a.post('/edit', async function (req, res) {
 async function changeUsername(req, res, nickName, userid, AU) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
+    // This will replace non-ascii cahrachetersssssss.
+    let name = nickName.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '');
     // This checks if the user is trying to change their nickname to an already existing nickname.
-    let check_nickName = await user.findOne({ nickname: nickName });
+    let check_nickName = await user.findOne({ nickname: name });
     // This checks if the user is trying to change their nickname to an already existing username.
-    let check_userName = await user.findOne({ user: nickName });
+    let check_userName = await user.findOne({ user: name });
 
     let image = await gfs.files.findOne({ filename: `${AU.userid}-${AU._id}.png` });
     
@@ -109,7 +111,7 @@ async function changeUsername(req, res, nickName, userid, AU) {
     // Let's see if the user is trying to reset their nickname to their username. If not, it would just provide an error message. 
     if (check_userName) {
         if (check_userName.userid == userid) {
-            if (check_userName.user == nickName) {
+            if (check_userName.user == name) {
                return await user.updateOne({ _id: AU._id }, { $set: { nickname: null } }).then(() => {
                 return res.json({
                     "OK": true,
@@ -120,13 +122,13 @@ async function changeUsername(req, res, nickName, userid, AU) {
         } else { return res.json({ "OK": false, error: `Username already exist. ` }) };
     }
     // Let's add the protections for the username.
-    if (nickName.length < 3) return res.json({ "OK": false, error: `Nickname has to be 3 or more characters. ` });
-    if (nickName.length > 16) return res.json({ "OK": false, error: `Nickname cannot be more than 16 characters. ` });
+    if (name.length < 3) return res.json({ "OK": false, error: `Nickname has to be 3 or more characters. ` });
+    if (name.length > 16) return res.json({ "OK": false, error: `Nickname cannot be more than 16 characters. ` });
     // Let's see if the nickname is a blocked one.
-    let checkname = nickName.toUpperCase();
+    let checkname = name.toUpperCase();
     await checkName(req, res, checkname).then(async (r) => {
         if (r === true || r === undefined) return res.json({ "OK": false, error: `Username could not be set. ` }) //res.render('./account/edit', { u: AU, log: true, theme: theme, image: image, errorMessage: `Username could not be set.` });
-        if (r === null) return await user.updateOne({ _id: AU._id }, { $set: { nickname: nickName } }).then(() => { res.json({ "OK": true, error: null }) });
+        if (r === null) return await user.updateOne({ _id: AU._id }, { $set: { nickname: name } }).then(() => { res.json({ "OK": true, error: null }) });
     });
 };
 

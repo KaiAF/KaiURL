@@ -4,7 +4,7 @@ async function checkName(req, res, name) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     // This is not the best AT ALL. So I added more checks in other code.
-    if (!name || name.indexOf(' ') >= 0) return res.render('./error/index', { errorMessage: `Cannot have a space in the nickname.`, theme: theme });
+    if (!name || name.indexOf(' ') >= 0) return res.json({ "OK": false, error: `Invalid username.` });
     let a;
     await blocked_names.findOne({ title: 'list' }, async (err, re) => {
         if (err) return res.send(err);
@@ -17,7 +17,7 @@ async function checkName(req, res, name) {
                     a = null
                 }
             } catch {
-                return res.send("There was an error on the blockName function");
+                return res.json({ "OK": false, error: `There was an error in the blockname function. Contact the developer.` })
             }
         }
     });

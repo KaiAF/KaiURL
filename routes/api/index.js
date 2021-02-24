@@ -59,12 +59,15 @@ a.post('/register', async function (req, res) {
     if (!theme) theme = null;
 
     if (email && pass && username) {
+        // This will replace non-ascii cahrachetersssssss.
+        let name = username.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '');
         // Username length has to be 3 characters or more.
-        if (username.length > 2) {
+        if (name.length > 2) {
+        if (name.length > 16) return res.json({ "OK": false, error: `Name can only be 16 characters.` });
         // Check if the name is blocked.
-        let checkname = username.toUpperCase();
-        let check_block = await checkName(req, res, checkname);
-        if (check_block === true || check_block === undefined) return res.json({ "OK": false, error: `Could not set username. ` });
+        let checkname = name.toUpperCase();
+        let check_block = await checkName(req, res, checkname)
+        if (check_block === true || check_block === undefined) return res.json({ "OK": false, error: `Username could not be set. ` })
         // ENC PASS:
         var parse_pass = crypto.enc.Utf8.parse(pass);
         var enc_pass = crypto.enc.Base64.stringify(parse_pass);
@@ -74,31 +77,29 @@ a.post('/register', async function (req, res) {
 
         let random_id = Math.random(1).toFixed(20).substring(2);
 
-        let check_username = await user.findOne({ user: username });
+        let check_username = await user.findOne({ user: name });
         let check_email = await user.findOne({ email: enc_email });
         let check_email_dec = await user.findOne({ email: email });
         let check_id = await user.findOne({ userid: random_id });
 
-        if (check_username) return res.json({ "OK": false, error: `Username already exist. ` });
-        if (check_email) return res.json({ "OK": false, error: `Email already exist. ` });
-        if (check_email_dec) return res.json({ "OK": false, error: `Email already exist. ` });
-        if (check_id) return res.json({ "OK": false, error: `userID already exist. Please try again. ` });
+        if (check_username) return res.json({ "OK": false, error: `Username already exist.` });
+        if (check_email) return res.json({ "OK": false, error: `Email already exist.` });
+        if (check_email_dec) return res.json({ "OK": false, error: `Email already exist.` });
+        if (check_id) return res.json({ "OK": false, error: `userID already exist. Please try again.` });
 
         new user({
             userid: random_id,
-            user: username,
+            user: name,
             pass: enc_pass,
             email: enc_email,
             joinDate: Date.now()
         }).save().then(() => {
             res.cookie("token", random_id);
-            res.cookie('userName', username);
-            res.json({
-                "OK": true
-            })
+            res.cookie('userName', name);
+            res.json({ "OK": true, error: null })
         })
         } else {
-            res.json({ "OK": false, error: `Username has to be 3 characters or more. ` });
+            res.json({ "OK": false, error: `Username has to be 3 characters or more.` });
         }
     } else {
         res.json({ "OK": false, error: `You have to enter a email, username, and a password. ` });

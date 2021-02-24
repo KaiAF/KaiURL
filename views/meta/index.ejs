@@ -3,6 +3,30 @@
     <link rel="icon" href="/icon.ico">
     <title><%- page %></title>
     <meta name="title" content="<%- page %>">
+    <% if (url.includes("user/")) { %>
+    <meta name="description" content="<%- user.description %>">
+    <meta name="author" content="Iris Zol">
+    <meta name="keywords" content="Kai, KaiURL, .xyz, express, shortUrl, urlShort, shrinkURL">
+    
+    <!-- Google Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.kaiurl.xyz/<%- url %>">
+    <meta property="og:title" content="<%- page %>">
+    <meta property="og:description" content="<%- user.description %>">
+    <% if (image) { %>
+    <meta property="og:image" content="https://www.kaiurl.xyz/img/<%- user.userid %>-<%- user._id %>.png">
+    <% } %>
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://www.kaiurl.xyz/<%- url %>">
+    <meta property="twitter:title" content="<%- page %>">
+    <meta property="twitter:description" content="<%- user.description %>">
+    <% if (image) { %>
+    <meta property="twitter:image" content="https://www.kaiurl.xyz/img/<%- user.userid %>-<%- user._id %>.png">
+    <% } %>
+    <meta name="theme-color" content="#28a745">
+    <% } else { %>
     <meta name="description" content="KaiURL is a website that allows you to shrink urls, which are uploaded to a database and seen publicly. For more information, check out our About page!">
     <meta name="author" content="Iris Zol">
     <meta name="keywords" content="Kai, KaiURL, .xyz, express, shortUrl, urlShort, shrinkURL">
@@ -21,6 +45,7 @@
     <meta property="twitter:description" content="KaiURL is a website that allows you to shrink urls, which are uploaded to a database and seen publicly. For more information, check out our About page!">
     <meta property="twitter:image" content="https://www.kaiurl.xyz/icon.ico">
     <meta name="theme-color" content="#28a745">
+    <% } %>
     
     <!-- CSS -->
     <% if (theme) { %>

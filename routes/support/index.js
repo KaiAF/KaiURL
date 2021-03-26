@@ -1,0 +1,89 @@
+const a = require('express').Router();
+const fetch = require('node-fetch');
+
+const user = require('../db/user');
+const bReport = require('../db/bug');
+const config = require('../config.json');
+
+a.get('/', async function (req,res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
+    let auser;
+    if (check_user == null) auser = null
+    if (check_user) auser = check_user;
+    res.render('./support/home/index', { theme: theme, u: auser });
+});
+
+a.get('/admin', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
+    if (check_user == null) return res.status(404).render('./error/index', { errorMessage: `This page could not be found`, theme: theme });
+    if (check_user.userid !== "40922208590827513497") return res.status(404).render('./error/index', { errorMessage: `This page could not be found`, theme: theme });
+    if (check_user) return res.render('./support/home/admin', { theme: theme, u: check_user });
+});
+
+a.get('/report-bug', async function (req,res) {
+    let theme = req.cookies.Theme;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    if (!theme) theme = null;
+    let auser;
+    let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
+    if (check_user == null) auser = null;
+    if (check_user) auser = check_user;
+    res.render('./support/bug/index', { theme: theme, u: auser });
+});
+
+a.post('/report-bug/submit', async function (req, res) {
+    let theme = req.cookies.Theme;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    if (!theme) theme = null;
+    let auser;
+    let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
+    if (check_user == null) auser = null;
+    if (check_user) auser = check_user.userid;
+    let r = Math.random(1).toFixed(15).substring(2);
+    new bReport({
+        title: req.body.title,
+        description: req.body.bug_detail,
+        reproduce: req.body.bug_reproduce,
+        bugId: r,
+        date: Date.now(),
+        userId: auser,
+        status: "Waiting.."
+    }).save().then(async () => {
+        res.json({ "OK": true, message: `Bug Report was created. Thanks.`, bugId: r });
+        await fetch(`${config.Url}/api/report${r}`, {
+            method: 'post'
+        });
+    });
+});
+
+a.get('/report-bug/reportId/:id', async function (req,res ){
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let checkId = await bReport.findOne({ bugId: req.params.id });
+    if (checkId == null) return res.render('./error/index', { theme: theme, errorMessage: `Could not find the report you were looking for.` });
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let auser;
+    let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
+    if (check_user == null) auser = null;
+    if (check_user) auser = check_user.userid;
+    if (auser === "40922208590827513497") return res.render('./support/bug/bug', { bug: checkId, u: check_user, theme: theme });
+    if (auser == null && checkId.userId == null) return res.render('./error/index', { theme: theme, errorMessage: `You need to be logged in to view this page. If you reported without an account, you can't view this page.` });
+    if (auser === checkId.userId) {
+        res.render('./support/bug/bug', { bug: checkId, u: check_user, theme: theme });
+    } else {
+        return res.render('./error/index', { theme: theme, errorMessage: `You need to be logged in to view this page. If you reported without an account, you can't view this page.` });
+    };
+});
+
+module.exports = a;

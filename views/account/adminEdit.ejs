@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Admin Edit '" + user.user + "'", url: "account/aEdit/" + user.userid }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/account/aEdit/" + user.userid, pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <% if (user.perms == "ADMIN") { %>
+                <p>Can't see other Admins information..</p>
+            <% } else { %>
+                Username: <%- user.user %><br>
+                Id: <%- user.userid %><br>
+                Email: <%- dEmail(user.email) %><br>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

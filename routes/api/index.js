@@ -4,45 +4,51 @@ const SHA256 = require('crypto-js/sha256');
 const timeago = require('timeago.js');
 const { Client } = require('discord.js');
 const btoa = require('btoa');
+const atob = require('atob');
 const path = require('path');
 const client = new Client();
 const env = require('dotenv').config();
 const fetch = require('node-fetch');
+const nodemailer = require('nodemailer');
 const { checkName } = require('../nameProtections');
-
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const redirect = "http://www.kaiurl.xyz/api/callback";
 
 const user = require('../db/user');
 const shortURL = require('../db/shortURL');
+const bRep = require('../db/bug');
+const config = require('../config.json');
+
+let CLIENT_ID;
+let CLIENT_SECRET;
+
+if (config.Url == "http://localhost") CLIENT_ID = process.env.TEST_CLIENT_ID;
+if (config.Url == "http://localhost") CLIENT_SECRET = process.env.TEST_CLIENT_SECRET;
+if (config.Url == "https://www.kaiurl.xyz") CLIENT_ID = process.env.CLIENT_ID;
+if (config.Url == "https://www.kaiurl.xyz") CLIENT_SECRET = process.env.CLIENT_SECRET;
+const redirect = `${config.Url}/api/callback`;
 
 // Log in with KaiURL.xyz Account
 
 a.post('/login', async function (req, res) {
-    let username = req.body.username;
+    let username = req.body.username.toUpperCase();
     let pass = req.body.password;
-
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
-
-
+    let red;
+    if (req.query.redirect == "/kaipaste") red = 'kaipaste';
+    if (req.query.redirect !== "/kaipaste") red = 'account';
     if (username && pass) {
         // ENC PASS:
         var parse_pass = crypto.enc.Utf8.parse(pass);
         var enc_pass = crypto.enc.Base64.stringify(parse_pass);
-        
-        let validate_user = await user.findOne({ user: username, pass: enc_pass });
-        
+        let validate_user = await user.findOne({ officialName: username, pass: enc_pass }) || await user.findOne({ nickname: req.body.username, pass: enc_pass });
         if (validate_user == null) return res.json({ "OK": false, error: `Could not find user.` });
-
         if (validate_user) {
             let r = Math.random(1).toFixed(17).substring(2);
             await user.updateOne({ _id: validate_user._id }, { $set: { auth_key: r } }).then(() => {
                 res.cookie('token', validate_user.userid);
                 res.cookie('userName', validate_user.user);
                 res.cookie('auth_key', r);
-                res.json({ 'OK': true, error: null });
+                res.json({ 'OK': true, redirect: `${red}`, error: null });
             });
         };
     } else {
@@ -53,10 +59,14 @@ a.post('/login', async function (req, res) {
 a.post('/register', async function (req, res) {
     let username = req.body.username;
     let pass = req.body.password;
-    let email = req.body.email;
+    let email = req.body.email
 
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
+    
+    let red;
+    if (req.query.redirect == "/kaipaste") red = 'kaipaste';
+    if (req.query.redirect !== "/kaipaste") red = 'account';
 
     if (email && pass && username) {
         // This will replace non-ascii cahrachetersssssss.
@@ -74,15 +84,19 @@ a.post('/register', async function (req, res) {
         // ENC EMAIL:
         var parse_email = crypto.enc.Utf8.parse(email);
         var enc_email = crypto.enc.Base64.stringify(parse_email);
+        var parse_email2 = crypto.enc.Utf8.parse(email.toUpperCase());
+        var enc_email2 = crypto.enc.Base64.stringify(parse_email2);
 
         let random_id = Math.random(1).toFixed(20).substring(2);
 
-        let check_username = await user.findOne({ user: name });
-        let check_email = await user.findOne({ email: enc_email });
-        let check_email_dec = await user.findOne({ email: email });
+        let check_username = await user.findOne({ officialName: checkname });
+        let check_nick = await user.findOne({ nickname: checkname });
+        let check_email = await user.findOne({ officialEmail: enc_email2 });
+        let check_email_dec = await user.findOne({ officialEmail: email.toUpperCase() });
         let check_id = await user.findOne({ userid: random_id });
 
         if (check_username) return res.json({ "OK": false, error: `Username already exist.` });
+        if (check_nick) return res.json({ "OK": false, error: `Nickname already exist.` });
         if (check_email) return res.json({ "OK": false, error: `Email already exist.` });
         if (check_email_dec) return res.json({ "OK": false, error: `Email already exist.` });
         if (check_id) return res.json({ "OK": false, error: `userID already exist. Please try again.` });
@@ -92,11 +106,15 @@ a.post('/register', async function (req, res) {
             user: name,
             pass: enc_pass,
             email: enc_email,
-            joinDate: Date.now()
+            role: "User",
+            joinDate: Date.now(),
+            officialName: name.toUpperCase(),
+            officialEmail: enc_email2,
+            ifDiscord: false
         }).save().then(() => {
             res.cookie("token", random_id);
             res.cookie('userName', name);
-            res.json({ "OK": true, error: null })
+            res.json({ "OK": true, redirect: `${red}`, error: null })
         })
         } else {
             res.json({ "OK": false, error: `Username has to be 3 characters or more.` });
@@ -131,7 +149,7 @@ a.get('/callback', async function (req, res) {
         let access_token = body.access_token;
         var parse_token = crypto.enc.Utf8.parse(access_token);
         var enc_token = crypto.enc.Base64.stringify(parse_token);
-  
+
         var decrypt_parse = crypto.enc.Base64.parse(enc_token);
         var decrypt_token = decrypt_parse.toString(crypto.enc.Utf8);
 
@@ -139,43 +157,55 @@ a.get('/callback', async function (req, res) {
             method: "GET",
             headers: { "Authorization": `Bearer ${access_token}` },
         }).then((r) => r.json()).then(async (body) => {
-           let r = Math.random(1).toFixed(17).substring(2);
-           let findUser = await user.findOne({ userid: body.id });
-           if (!findUser) {
-           new user({
-               user: body.username,
-               discriminator: body.discriminator,
-               userid: body.id,
-               email: body.email,
-               authToken: access_token,
-               auth_key: r
-             }).save().then(() => {
-                 res.cookie("token", body.id);
-                 res.cookie("userName", body.username);
-                 res.cookie('auth_key', r);
-                 res.redirect("/account")
-             }).catch(err => res.send(err));
-           } else {
-               user.updateOne({ userid: body.id }, {
+            // ENC EMAIL:
+            var parse_email = crypto.enc.Utf8.parse(body.email);
+            var enc_email = crypto.enc.Base64.stringify(parse_email);
+            var parse_email2 = crypto.enc.Utf8.parse(body.email.toUpperCase());
+            var enc_email2 = crypto.enc.Base64.stringify(parse_email2);
+            let r = Math.random(1).toFixed(17).substring(2);
+            let findUser = await user.findOne({ userid: body.id });
+            if (!findUser) {
+            new user({
                 user: body.username,
                 discriminator: body.discriminator,
                 userid: body.id,
-                email: body.email,
+                email: enc_email,
                 authToken: access_token,
-                auth_key: r
-               }).then(() => {
-                res.cookie('token', body.id);
-                res.cookie('userName', body.username);
-                res.cookie('auth_key', r);
-                res.redirect("/account")
-               }).catch(err => res.send(err));
-           };
+                auth_key: r,
+                role: "User",
+                officialName: body.username.toUpperCase(),
+                officialEmail: enc_email2,
+                ifDiscord: true
+              }).save().then(() => {
+                  res.cookie("token", body.id);
+                  res.cookie("userName", body.username);
+                  res.cookie('auth_key', r);
+                  res.redirect("/account")
+              }).catch(err => res.send(err));
+            } else {
+                user.updateOne({ userid: body.id }, {
+                 user: body.username,
+                 discriminator: body.discriminator,
+                 userid: body.id,
+                 email: enc_email,
+                 authToken: access_token,
+                 auth_key: r,
+                 officialName: body.username.toUpperCase(),
+                 officialEmail: enc_email2,
+                 ifDiscord: true
+                }).then(() => {
+                 res.cookie('token', body.id);
+                 res.cookie('userName', body.username);
+                 res.cookie('auth_key', r);
+                 res.redirect("/account")
+                }).catch(err => res.send(err));
+            };
         });
 
     });
     function _encode(obj) {
         let string = "";
-      
+
         for (const [key, value] of Object.entries(obj)) {
           if (!value) continue;
           string += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
@@ -187,8 +217,53 @@ a.get('/callback', async function (req, res) {
 // Discord Log in URL
 
 a.get('/login/discord', (req, res) => {
-    // res.redirect('https://discord.com/api/oauth2/authorize?client_id=798632117981413397&redirect_uri=http%3A%2F%2Flocalhost%2Fapi%2Fcallback&response_type=code&scope=identify%20email%20connections');
-    res.redirect('https://discord.com/api/oauth2/authorize?client_id=797253825336573975&redirect_uri=http%3A%2F%2Fwww.kaiurl.xyz%2Fapi%2Fcallback&response_type=code&scope=identify%20email%20connections');
+  if (config.Url == "http://localhost") return res.redirect(`${config.discord_Url_test}`);
+  if (config.Url == "https://www.kaiurl.xyz") return res.redirect(`${config.discord_Url}`);
+});
+
+a.post('/passwordReset', async function (req,res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let r = Math.random(1).toFixed(45).substring(2);
+    // ENC EMAIL:
+    var parse_email = crypto.enc.Utf8.parse(req.body.email.toUpperCase());
+    var enc_email = crypto.enc.Base64.stringify(parse_email);
+    // DEC EMAIL:
+    var email = atob(enc_email);
+    let find_user = await user.findOne({ officialEmail: enc_email, officialName: req.body.username.toUpperCase() }) || await user.findOne({ officialEmail: req.body.email.toUpperCase(), officialName: req.body.username.toUpperCase() });
+    if (find_user == null) return res.status(404).json({ "OK": false, errorMessage: `Could not authenticate user.` });
+    if (find_user.ifDiscord == true) return res.status(404).json({ "OK": false, errorMessage: `Cannot do password resets for Discord accounts.` });
+    let a = find_user.sinceLastReset
+    let b = Date.now() + (24 * 60 * 60 * 1000);
+    if (!find_user.pass) return res.status(404).json({ "OK": false, errorMessage: `This account is linked with Discord. So you can't reset a password.` });
+    if (a < b) return res.status(404).json({ "OK": false, errorMessage: `You can only do a password reset every 24 hours.` });
+    await user.updateOne({ _id: find_user._id }, { $set: { passwordReset: true, sinceLastReset: Date.now(), resetId: r, hasReset: true } }).then(() => {
+        pReset(req, res, email, find_user.user, r).catch(e => console.log(e));
+        res.json({ "OK": true, message: `Sent.` });
+    });
+});
+
+a.post('/changePassword', async function (req, res) {
+    let pId = req.cookies.pResetId;
+    // ENC PASS:
+    var parse_pass = crypto.enc.Utf8.parse(req.body.new_pass);
+    var enc_pass = crypto.enc.Base64.stringify(parse_pass);
+    await user.findOne({ resetId: pId }, async (err, re) => {
+        if (err) return res.status(500).json({ "OK": false, errorMessage: err });
+        if (re == null) return res.status(404).json({ "OK": false, errorMessage: `Could not find user.` });
+        await user.updateOne({ _id: re._id }, { $set: { pass: enc_pass, resetId: null, passwordReset: false, auth_key: null } }).then(() => {
+            res.clearCookie("pResetId");
+            res.json({ "OK": true, errorMessage: null });
+        });
+    });
+});
+
+a.post('/report/:id', async function (req, res) {
+    await bRep.findOne({ bugId: req.params.id }, (err, re) => {
+        if (err) return res.json({ "OK": false, errorMessage: `Could not find url` });
+        if (re == null) return res.status(404).json({ "OK": false, errorMessage: `Couldnt find url` });
+        bReport(req, res, 'kaiaf@protonmail.com', `${config.Url}/support/report-bug/reportId/${re.bugId}`);
+    });
 });
 
 a.get('/:shortid/find', async function (req, res) {
@@ -224,11 +299,70 @@ a.get('/account', async function (req, res) {
     let username = req.cookies.userName;
     let userid = req.cookies.token;
     if (username && userid) {
-        let userInfo = await user.findOne({ userid: req.cookies.token, user: username }, { _id: 0, email: 0, pass: 0, auth_key: 0 }).exec();
+        let userInfo = await user.findOne({ userid: req.cookies.token, user: username }, { _id: 0, email: 0, pass: 0, auth_key: 0, resetId: 0 }).exec();
         res.send(userInfo)
     } else {
-        res.json({ "auth": false });
+        res.status(404).json({ "auth": false });
     };
 });
+
+a.get('/user/:name', async function (req, res) {
+    let checkName = await user.findOne({ officialName: req.params.name.toUpperCase() }) || await user.findOne({ nickname: req.params.name });
+    if (checkName == null) return res.json({ "OK": false, error: `Could not find user '${req.params.name}'.` });
+    if (checkName) return res.json({ "OK": true, error: null });
+});
+
+async function pReset(req, res, email, userName, r) {
+    res.cookie("pResetId", r);
+    // create reusable transporter object using the default SMTP transport
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'loudkaiaf@gmail.com',
+        pass: process.env.PASS
+      }
+    });
+
+    var mailOptions = {
+      from: 'support@kaiurl.xyz',
+      to: email,
+      subject: 'KaiURL.xyz Password Reset',
+      html: `Hello ${userName},<br><br>Your password reset is here: <a href="${config.Url}/passwordReset?q=${r}">${config.Url}/passwordReset?q=${r}</a>. <br><b>The password reset link will expire after 5 minutes.</b><br><br>If you did not request a password change, please ignore it.`,
+      text: `Hello ${userName}, Your password reset is here: ${config.Url}/passwordReset?q=${r}. The password reset link will expire after 5 minutes. If you did not request a password change, please ignore it.`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(error);
+      } else {
+        return `${info.response}`
+      }
+    });
+}
+
+async function bReport(req, res, email, data) {
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'loudkaiaf@gmail.com',
+          pass: process.env.PASS
+        }
+      });
+
+      var mailOptions = {
+        from: 'support@kaiurl.xyz',
+        to: email,
+        subject: 'KaiURL.xyz Bug report',
+        html: `A user reported a bug. <a href="${data}">Look at it here</a>`,
+      };
+
+      transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          return `${info.response}`
+        }
+      });
+}
 
 module.exports = a;

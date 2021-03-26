@@ -5,6 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%- include('../meta/index', { page: "Account Dashboard", url: "account" }); %>
+    <% let owner; %>
+    <% if (u.role === "Owner") owner = "Owner"; %>
+    <% if (u.role !== "Owner") owner = ""; %>
 </head>
 <body>
     <div id="sideBar" class="sidebar">
@@ -38,9 +41,14 @@
     </div>
     <div class="container">
         <div class="main">
-          <a href="/user/<%- u.user %>">Public Profile.</a>
-            <div style="padding-top: 50px;" class="other">
-                <center>
+          <div style="padding-top: 50px;" class="other">
+            <center>
+                <div class="center-container">
+                  <a href="/user/<%= u.user %>">Public Profile.</a>
+                  <% if (owner) { %>
+                    <br><a href="/kaipaste/admin">KaiPaste Admin</a>
+                  <% } %>
+                </div>
                 <p class="error" id="error"></p>
                 <div class="center-container">
                     <form class="form" id="form-shrink-private">
@@ -94,7 +102,7 @@
                     </tbody>
                 </table>
             <br><br>
-                <p class="bold">KaiPaste:</p>
+                <p class="bold"><a href="/kaipaste">KaiPaste:</a></p>
                 <table id="container">
                     <tr>
                       <th>Title</th><th>All <%= u.user %>'s paste </th><th>Remove the paste</th><th>Edit</th>

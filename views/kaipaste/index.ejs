@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: 'KaiPaste', url: '/kaipaste' }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/account", pageName: "acc" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <p class="error" id="error"></p>
+        <p id="msg"></p>
+        <center>
+            <form class="form" id="form-kaipaste">
+                <div class="form-item">
+                    <label for="title" class="form-label">Title:</label>
+                    <input type="text" class="form-input" id="title" name="title" autocomplete="off" spellcheck="off" required>
+                    <label for="desc" class="form-label">Body:</label>
+                    <textarea name="desc" id="desc" cols="30" rows="10" placeholder="Body" style="margin: 0px; height: 137px; width: 251px;" required></textarea>
+                    <button type="submit" class="form-button">Create</button>
+                </div>
+            </form>
+        </center>
+        </div>
+    </div>
+</body>
+</html>
+<script defer>
+    $('#form-kaipaste').submit(function (e) {
+        e.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch('/kaipaste/create', {
+            method: 'post',
+            mode : 'same-origin',
+            credentials: 'same-origin' ,
+            body : formData
+        }).then((r) => r.json()).then((b) => {
+            var g = document.getElementById('error');
+            var a = document.getElementById('msg');
+            g.innerText = "";
+            a.innerText = "";
+            if (b.OK == false) return g.innerText = b.errorMessage;
+            if (b.OK == true) {
+                console.log(b.message)
+                window.location.assign(b.message);
+            }
+        });
+    });
+</script>

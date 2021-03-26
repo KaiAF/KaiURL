@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "KaiURL's Changelogs", url: "changelog" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/changelog", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <div class="center-container">
+                <% if (c[0]) { %>
+                <h2>Title:<br><%- c[0].title %></h2>
+                <p>Version:<br><%- c[0].version %></p>
+                <p>Changes:<br><%- c[0].description %></p>
+                <small><%- c[0].date %> (<%- d.format(c[0].date, 'en-us') %>)</small>
+                <% } else { %>
+                    <h2>Title:<br>null</h2>
+                    <p>Version:<br>null</p>
+                    <p>Changes:<br>null</p>
+                    <small>null</small>
+                <% } %>
+            </div>
+            <br>
+            <div class="center-container">
+                <h2>Older Changelogs</h2>
+                <%
+                let i;
+                let r;
+                if (c) {
+                    for (i = 1; i < c.length; i++) {
+                        r += `Past Changelog: <a href="/changelog/${c[i].Id}">${c[i].title} (${c[i].Id})</a><br>`
+                    }
+                }
+                %>
+                <% if (r) { %>
+                    <p><%- r.replace('undefined', '') %></p>
+                <% } %>
+            </div>
+        </center>
+        </div>
+    </div>
+</body>
+</html>

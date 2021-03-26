@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include("../../meta/index", { page: "Report Bug", url: "support/report-bug" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/support/report-bug", pageName: "report-bug" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+            <form class="form" id="form-bug-report">
+                <h2>Report Bug:</h2>
+                <p>When reporting a bug, I recommend that you are logged in, so I can see who reported it. If not, then you aren't eligible for the bug hunter role.</p>
+                <p class="bold" id="message"></p>
+                <div class="form-item">
+                    <label for="title"></label>
+                    <input type="text" id="title" name="title" class="form-input" placeholder="Title" autocomplete="off" spellcheck="off" required> <br>
+                    <textarea name="bug_detail" id="bug_detail" cols="32" rows="5" placeholder="Bug Details" style="margin: 0px; width: 250px; height: 102px;" required></textarea> <br>
+                    <textarea name="bug_reproduce" id="bug_reproduce" cols="32" rows="5" placeholder="How to reproduce the bug" style="margin: 0px; width: 250px; height: 102px;" required></textarea>
+                </div>
+                <button type="submit" class="form-button">Submit</button>
+            </form>
+            </center>
+            <h3 class="error">When reporting a bug, it will not be public. When the bug is listed as fixed, it will be public.</h3>
+            <p>If a user reports bugs, they have a chance of getting the bug hunter role! To see what it looks like, view <a href="/user/ella">ella's profile</a>!</p>
+            <p>Having the bug hunter role does not give you any other permissions. It's just a special role to all the people who report bugs.</p>
+        </div>
+    </div>
+</body>
+</html>
+<script defer>    
+    $("#form-bug-report").submit(function(event) {
+        event.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch("/support/report-bug/submit", {   
+            method: 'POST',
+            mode : 'same-origin',
+            credentials: 'same-origin' ,
+            body : formData
+        }).then((r) => r.json()).then((b) => {
+            let g = document.getElementById('message');
+            if (b.OK == true) {
+                window.location.assign('/support/report-bug/reportId/' + b.bugId);
+            } else {
+                g.innerText = "";
+                g.innerText = "There was an error."
+            }
+        });
+    });
+</script>

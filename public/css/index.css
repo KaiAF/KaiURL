@@ -3,7 +3,7 @@
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     margin: 0
 }
 
@@ -295,4 +295,26 @@ a:hover {
 
 .error {
   color: orangered;
+}
+
+.role {
+  background-color: rgb(46, 58, 80);
+  border: none;
+  color: rgb(247, 93, 93);
+  padding: 10px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 2px 1px;
+  cursor: pointer;
+  border-radius: 15px;
+}
+
+.bold-verified {
+  color: rgb(247, 93, 93);
+}
+
+a.button {
+  color: white;
+  text-decoration: none;
 }

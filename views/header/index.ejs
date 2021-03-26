@@ -9,6 +9,8 @@
 <% if (page == "/account") { %> <a style="color: #28a745;" href="/account">Account</a> <% } else { %> <a href="/account">Account</a> <% } %>
 <a href="/logout">Log out</a>
 <% } %>
+<% if (page == "/changelog") { %> <a style="color: #28a745" href="/changelog">Changelog</a> <% } else { %> <a href="/changelog">Changelog</a> <% } %>
+<% if (page == "/copyright") { %> <a style="color: #28a745" href="/copyright">Copyright</a> <% } else { %> <a href="/copyright">Copyright</a> <% } %>
 <form class="change-theme" method="POST" action="/api/change-theme?page=<%- page %>">
 <% if (theme) { %>
     <% if (theme == "dark") { %>
@@ -21,20 +23,4 @@
 </form>
 <a href="/r/twitter"><img alt="Twitter" style="vertical-align:middle;" src="https://abs.twimg.com/favicons/twitter.ico"> Twitter</a>
 <a href="/r/source"><img alt="GitHub" style="vertical-align: middle; width: 32px; height: 32px;" src="https://github.com/fluidicon.png"> GitHub</a>
-<% if (page === "/account") { %>
-    <script defer>
-        // This is to get the account info
-        $.get("/api/account", function( data ) {
-          $( ".result" ).html( data );
-        });
-    </script>
-<% } %>
-<% if (u) { %>
-<% if (page === "/user/" + u.user) { %>
-    <script>
-        fetch("/api/account", {
-            method: 'get'
-        })
-    </script>
-<% } %>
-<% } %>
+<a href="/support"><img alt="Bug report" src="/image/bug.png" style="width: 30px; height: 30px; vertical-align: middle;"> Report a bug</a>

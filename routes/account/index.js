@@ -3,6 +3,8 @@ const crypto = require('crypto-js');
 const { checkName } = require('../nameProtections');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
+const atob = require('atob');
+const btoa = require('btoa');
 
 const user = require('../db/user');
 const pvurl = require('../db/pUrl');
@@ -93,6 +95,21 @@ a.post('/edit', async function (req, res) {
     } else {
         res.json({ "OK": false, error: `Could not authenticate user.` })
     };
+});
+
+a.get('/aEdit/:id', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    let aUser = await user.findOne({ userid: req.params.id });
+
+    if (checkUser == null) return res.status(403).send('You do not have access to this page.');
+    if (checkUser.perms !== "ADMIN") return res.status(403).send('You do not have access to this page.');
+    if (aUser == null) return res.status(403).send('Could not find user.');
+
+    res.render('./account/adminEdit', { theme: theme, u: checkUser, user: aUser, dEmail: atob });
 });
 
 async function changeUsername(req, res, nickName, userid, AU) {

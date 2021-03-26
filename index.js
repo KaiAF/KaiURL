@@ -10,6 +10,7 @@ const shorturl = require('./routes/db/shortURL');
 const user = require('./routes/db/user');
 const pvurl = require('./routes/db/pUrl');
 const blockedName = require('./routes/db/blockedName');
+const config = require('./routes/config.json');
 
 console.clear();
 // Mongoose Database. You would need to configure your own Mongo URI.
@@ -33,6 +34,9 @@ app.use('/shrink', require('./routes/shrink/index')); // Creating the short url.
 app.use('/kaipaste', require('./routes/kaipaste/index')); // KaiPaste. Like pastebin, but worse.
 app.use('/user', require('./routes/account/user')); // This will display the users Profile.
 app.use('/img', require('./routes/account/avatar')); // Avatar route.
+app.use('/passwordReset', require('./routes/resetP/index'));
+app.use('/support', require('./routes/support/index')); // Bug reports.
+app.use('/changelog', require('./routes/changelog/index')); // Changelogs!
 app.use(checkUser); // This function is there to check if the user is logged in or not.
 app.use(express.static('public')); // Public code. Like the script files.
 
@@ -43,42 +47,25 @@ async function checkUser(req, res, next) {
     let username = req.cookies.userName;
     let authKey = req.cookies.auth_key;
     if (userid && username && authKey) {
-       await user.findOne({ userid: userid, user: username, auth_key: authKey }, (err, re) => {
+       await user.findOne({ userid: userid, officialName: username.toUpperCase(), auth_key: authKey }, (err, re) => {
             if (err) return res.send(err);
             if (re == null) {
-                res.clearCookie("auth")
-                res.clearCookie("token")
-                res.clearCookie("userName")
-                res.clearCookie("auth_key")
-                next()
+                clearCookie(req,res,next());
             }
             if (re) {
                 if (re.auth_key === authKey) {
                     res.cookie("auth", re._id); // The user's mongo Id.
                     next();
                 } else {
-                    res.clearCookie("auth")
-                    res.clearCookie("token")
-                    res.clearCookie("userName")
-                    res.clearCookie("auth_key")
-                    next()
+                    clearCookie(req,res,next());
                 }
             };
         }).catch(e => {
             console.log(e)
-            res.clearCookie("auth")
-            res.clearCookie("token")
-            res.clearCookie("userName")
-            res.clearCookie("auth_key")
-            next()
+            clearCookie(req,res,next());
         });
     } else {
-        res.clearCookie("auth")
-        res.clearCookie("token")
-        res.clearCookie("userName")
-        res.clearCookie("auth_key")
-        res.cookie("auth", "000000000000000000000000"); // Auth Id is set to all zeros as it would crash if it was set to null. Weird.
-        next()
+        clearCookie(req,res,next());
     }
 };
 
@@ -134,10 +121,8 @@ a.get('/register', async function (req, res) {
 });
 
 a.get('/logout', (req, res) => {
-    res.clearCookie("token");
-    res.clearCookie("userName");
-    res.clearCookie("auth");
-    res.redirect('/');
+    clearCookie(req,res);
+    return res.redirect('/');
 });
 
 // Uninportant pages
@@ -190,6 +175,18 @@ a.get('/credit', async function (req, res) {
     }
 });
 
+a.get('/copyright', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    if (auth) {
+        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
+        res.render('./copyright/index', { u: check_user, log: true, theme: theme });
+    } else {
+        res.render('./copyright/index', { u: null, log: false, theme: theme });
+    }
+});
+
 // Redirect to FullURL
 
 a.get('/:id', async function (req, res) {
@@ -225,6 +222,15 @@ a.get('/:Name/:id', async function (req, res) {
         });
     });
 });
+
+function clearCookie(req, res, next) {
+    res.clearCookie("auth")
+    res.clearCookie("token")
+    res.clearCookie("userName")
+    res.clearCookie("auth_key")
+    res.cookie("auth", "000000000000000000000000"); // Auth Id is set to all zeros as it would crash if it was set to null. Weird.
+    next
+}
 
 app.use('/', a);
 app.listen(process.env.PORT || 80, function () {

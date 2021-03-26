@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "Reset Password", url: "/passwordReset" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/passwordReset", pageName: "Reset Password" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <p class="error" id="error"></p>
+            <p class="success" id="success"></p>
+            <h2>Password Reset</h2>
+            <center>
+            <form class="form" id="form">
+                <div class="form-item">
+                    <label for="form-pass" class="form-label">New password:</label>
+                    <input type="password" id="form-pass" name="new_pass" class="form-input" autocomplete="off" spellcheck="off" required>
+                    <button class="form-button" type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+<script defer src="/js/form.js"></script>
+<script defer>
+    $('#form').submit(function (e) {
+        e.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch('/api/changePassword', {
+            method: 'post',
+            body : formData
+        }).then((r) => r.json()).then((b) => {
+            var er = document.getElementById('error');
+            var g = document.getElementById('success');
+            var email;
+            var username;
+            console.log(b.OK)
+            if (b.OK == false) {
+                er.innerText = ""
+                return er.innerText = b.errorMessage
+            } else {
+                g.innerText = ""
+                setTimeout(() => {
+                    window.location.assign('/login');
+                }, 1500);
+                return g.innerText = "Password was reset."
+            }
+        });
+    });
+</script>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: 'Support', url: 'support' }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/support", pageName: "support" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <h2>KaiURL.xyz Support:</h2>
+            <p>If you want to report a bug, report it <a href="/support/report-bug">here</a>.</p>
+            <p>If you want general support, email me <a href="mailto:loudkaiaf@gmail.com">here</a>.</p>
+            <br><br><br>
+            <p class="error">loudkaiaf@gmail.com is my official support email</p>
+        </div>
+    </div>
+</body>
+</html>

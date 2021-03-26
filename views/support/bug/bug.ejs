@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: "Bug Page", url: "support/report-bug/reportId/" + bug.bugId }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/support/report-bug/reportId/" + bug.bugId, pageName: bug.bugId }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <% if (bug.userId) { %>
+                <h2>Reporter Id: <a href="/user/<%= bug.userId %>"><%= bug.userId %></a></h2>
+            <% } else { %>
+                <h2>Reporter Id: null</h2>
+            <% } %>
+            <h2>Bug Name: <%= bug.title %></h2>
+            <h2>Bug Details: <%= bug.description %></h2>
+            <h2>How to reproduce the bug: <%= bug.reproduce %></h2>
+            <p class="error">Bug Status: <%= bug.status %></p>
+        </div>
+    </div>
+    </div>
+</body>
+</html>

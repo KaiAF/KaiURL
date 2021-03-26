@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: 'Admin Page', url: "" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/kaipaste", pageName: "acc" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+            <table id="container">
+                <tr><th>Paste Title</th><th>Remove</th></tr>
+                <% paste.forEach(p => { %>
+                    <tbody>
+                        <tr>
+                            <td><a href="/kaipaste/<%- p.id %>"><%= p.title %></a></td>
+                            <% if (!p.removed) { %>
+                            <td><a href="/kaipaste/remove/<%= p.id %>">Remove</a></td>
+                            <% } else { %>
+                            <td><a href="/kaipaste/add/<%= p.id %>">Add</a></td>
+                            <% } %>
+                        </tr>
+                    </tbody>
+                <% }) %>
+            </table>
+          </center>
+        </div>
+    </div>
+</body>
+</html>
+<script defer>
+    $('#removePaste').submit(function (event) {
+        console.log(event)
+    });
+</script>

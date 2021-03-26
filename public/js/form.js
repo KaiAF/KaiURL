@@ -31,16 +31,69 @@ $("#form-glimesh").submit(function(event, type) {
 
 // Log in page / register page
 
+$("#form-username-register").on("keyup", function(e) {
+    var g = document.getElementById('error');
+    if (e.target.value.length > 2) {
+    fetch('/api/user/' + e.target.value, {
+        method: 'get'
+    }).then((r) => r.json()).then((b) => {
+        if (b.OK == true) {
+            g.innerText = "Username already exist."
+        } else {
+            g.innerText = ""
+        }
+    });
+} else {
+    if (e.target.value == "") {
+        g.innerText = ""
+    } else {
+        g.innerText = `Username has to be 3 or more characters.`
+    }
+}
+});
+
 $("#form-register").submit(function(event, type) {
     event.preventDefault();
     const formData = new URLSearchParams(new FormData(this));
-    rl(formData, "register")
+    let red;
+    if (window.location.search == "?redirect=/kaipaste") red = '/kaipaste'
+    if (window.location.search !== "?redirect=/kaipaste") red = '/account'
+    rl(formData, "register", red)
+});
+
+$("#form-username").on("keyup", function(e) {
+    var g = document.getElementById('error');
+    if (e.target.value.length > 2) {
+    fetch('/api/user/' + e.target.value, {
+        method: 'get'
+    }).then((r) => r.json()).then((b) => {
+        if (b.OK == true) {
+            g.innerText = ""
+        } else {
+            if (g.innerText) {
+                g.innerText = ""
+                g.append(b.error);
+            } else {
+                return g.append(b.error);
+            }
+        }
+    });
+} else {
+    if (e.target.value == "") {
+        g.innerText = ""
+    } else {
+        g.innerText = `Username has to be 3 or more characters.`
+    }
+}
 });
 
 $("#form-login").submit(function(event, type) {
     event.preventDefault();
     const formData = new URLSearchParams(new FormData(this));
-    rl(formData, "login")
+    let red;
+    if (window.location.search == "?redirect=/kaipaste") red = '/kaipaste'
+    if (window.location.search !== "?redirect=/kaipaste") red = '/account'
+    rl(formData, "login", red)
 });
 
 // Shrink url
@@ -56,6 +109,14 @@ $("#form-shrink-private").submit(function(event, type) {
     const formData = new URLSearchParams(new FormData(this));
     shrink(formData, true)
 });
+
+// Changelog
+
+$('#form-changelogNew').submit(function(event, type) {
+    event.preventDefault();
+    const formData = new URLSearchParams(new FormData(this));
+    changelogNew(formData)
+})
 
 function stuff(event, type, formData) {
     fetch("/account/edit?type=" + type,
@@ -78,15 +139,16 @@ function stuff(event, type, formData) {
       });
 }
 
-function rl(formData, type) {
-    fetch("/api/" + type,
+function rl(formData, type, q) {
+    fetch(`/api/${type}?redirect=${q}`,
     {   method: 'POST',
         mode : 'same-origin',
         credentials: 'same-origin' ,
         body : formData
     }).then((r) => r.json()).then((b) => {
       if (b.OK == true) {
-          return window.location.assign("/account")
+          if (b.redirect == "account") return window.location.assign("/account")
+          if (b.redirect == "kaipaste") return window.location.assign("/kaipaste")
       } else {
           var g = document.getElementById('error');
           if (g.innerText) {
@@ -103,7 +165,6 @@ function shrink(formData, type) {
     let a;
     if (type == false) a = "/shrink";
     if (type == true) a = "/shrink/private"
-    console.log(a);
     fetch(a,
     {   method: 'POST',
         mode : 'same-origin',
@@ -122,4 +183,25 @@ function shrink(formData, type) {
           }
       }
     });
+}
+
+function changelogNew(f) {
+    fetch('/changelog/new', {
+        method: 'post',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: f
+    }).then((r) => r.json()).then((b) => {
+        if (b.OK == true) {
+            return window.location.assign('/changelog');
+        } else {
+            var g = document.getElementById('error');
+            if (g.innerText) {
+                g.innerText = "";
+                g.append(b.error);
+            } else {
+                return g.append(b.error);
+            }
+        }
+    })
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: 'Admin Page', url: "" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/kaipaste", pageName: "acc" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <p class="error" id="error"></p>
+            <form class="form" id="form-remove">
+                <div class="form-item">
+                    <label for="pass" class="form-label">Auth Password:</label>
+                    <input type="password" id="pass" name="pass" placeholder="Password" class="form-input" required>
+                    <input type="text" name="id" value="<%= paste.id %>" hidden>
+                </div>
+                <button type="submit" class="form-button">Submit</button>
+            </form>
+        </center>
+        </div>
+    </div>
+</body>
+</html>
+<script defer>
+    $('#form-remove').submit(function (event) {
+        event.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch("/kaipaste/add", {   
+            method: 'POST',
+            mode : 'same-origin',
+            credentials: 'same-origin' ,
+            body : formData
+        }).then((r) => r.json()).then((b) => {
+            var g = document.getElementById('error');
+            g.innerText = "";
+            if (b.OK == false) return g.innerText = b.error;
+            if (b.OK == true) return g.innerText = b.message;
+        });
+    });
+</script>

@@ -18,8 +18,7 @@
         <center>
             <div class="center-container">
                 <% if (c[0]) { %>
-                <h2>Title:<br><%- c[0].title %></h2>
-                <p>Version:<br><%- c[0].version %></p>
+                <h2><%- c[0].title %> (<%- c[0].version %>)</h2>
                 <p>Changes:<br><%- c[0].description %></p>
                 <small><%- c[0].date %> (<%- d.format(c[0].date, 'en-us') %>)</small>
                 <% } else { %>

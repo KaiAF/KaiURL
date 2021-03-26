@@ -16,7 +16,15 @@
     <div class="container">
         <div class="main">
             <h1>
-                For KaiONLY
+                <% if (b) { %>
+                <center>
+                    <div class="center-container">
+                        <% b.forEach(e => { %>
+                            <a href="/support/report-bug/reportId/<%- e.bugId %>"><%- e.title %></a><br>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </center>
             </h1>
         </div>
     </div>

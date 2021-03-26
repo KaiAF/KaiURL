@@ -10,7 +10,7 @@
 <a href="/logout">Log out</a>
 <% } %>
 <% if (page == "/changelog") { %> <a style="color: #28a745" href="/changelog">Changelog</a> <% } else { %> <a href="/changelog">Changelog</a> <% } %>
-<% if (page == "/copyright") { %> <a style="color: #28a745" href="/copyright">Copyright</a> <% } else { %> <a href="/copyright">Copyright</a> <% } %>
+<% if (page == "/license") { %> <a style="color: #28a745" href="/license">License</a> <% } else { %> <a href="/license">License</a> <% } %>
 <form class="change-theme" method="POST" action="/api/change-theme?page=<%- page %>">
 <% if (theme) { %>
     <% if (theme == "dark") { %>

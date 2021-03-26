@@ -1,0 +1,7 @@
+Changed Changelog format.
+Changed "/copyright" to "<a href="/license">/license</a>".
+Changed how "<a href="/license">/license</a>" looks.
+Changed how "<a href="/about">/about</a>" looks.
+Changed how "<a href="/contact">/contact</a>" looks.
+Added comment system for bug reports
+Added "Labels" for bug reports

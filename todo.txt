@@ -1,1 +1,2 @@
 Make a format for changelogs.
+Let users use the site for image hosting.

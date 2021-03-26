@@ -17,8 +17,7 @@
         <div class="main">
         <center>
             <div class="center-container">
-                <h2>Title:<br><%- c.title %></h2>
-                <p>Version:<br><%- c.version %></p>
+                <h2><%- c.title %> (<%- c.version %>)</h2>
                 <p>Changes:<br><%- c.description %></p>
                 <small><%- c.date %> (<%- d.format(c.date, 'en-us') %>)</small>
             </div>

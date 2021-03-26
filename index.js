@@ -175,7 +175,7 @@ a.get('/credit', async function (req, res) {
     }
 });
 
-a.get('/copyright', async function (req, res) {
+a.get('/license', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let auth = req.cookies.auth;

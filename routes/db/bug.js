@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     bugId: String,
     date: Date,
     userId: String,
-    status: String
+    status: String,
+    comment: Array
 });
 
 module.exports = mongoose.model('bug-report', userSchema);

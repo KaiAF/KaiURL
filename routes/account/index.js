@@ -10,6 +10,7 @@ const user = require('../db/user');
 const pvurl = require('../db/pUrl');
 const text = require('../db/kaipaste');
 const blockedName = require('../db/blockedName');
+const apiKey = require('../db/apiKey');
 
 let gfs;
 var conn = mongoose.connection;
@@ -97,7 +98,21 @@ a.post('/edit', async function (req, res) {
     };
 });
 
-a.get('/aEdit/:id', async function (req, res) {
+a.get('/api/dashboard', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) return res.redirect('/login');
+
+    let checkapiKey = await apiKey.findOne({ user: checkUser.userid });
+    if (!checkapiKey) checkapiKey == null;
+
+    res.render('./account/api', { theme: theme, u: checkUser, key: checkapiKey });
+});
+
+a.get('/edit/:id', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let auth = req.cookies.auth;

@@ -37,6 +37,7 @@ app.use('/img', require('./routes/account/avatar')); // Avatar route.
 app.use('/passwordReset', require('./routes/resetP/index'));
 app.use('/support', require('./routes/support/index')); // Bug reports.
 app.use('/changelog', require('./routes/changelog/index')); // Changelogs!
+app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
 app.use(checkUser); // This function is there to check if the user is logged in or not.
 app.use(express.static('public')); // Public code. Like the script files.
 
@@ -185,6 +186,29 @@ a.get('/license', async function (req, res) {
     } else {
         res.render('./copyright/index', { u: null, log: false, theme: theme });
     }
+});
+
+a.get('/config.json', async function (req, res) {
+    res.sendFile(path.join(__dirname + '/routes/config.json'));
+});
+
+// Change-theme
+
+a.post('/change-theme', async function (req, res) {
+    let theme = req.cookies.Theme;
+    let page = req.query.page;
+    if (theme) {
+        if (theme == "dark") {
+            res.cookie("Theme", "light", { maxAge: 3.154e+10 });
+            res.redirect(page)
+        } else {
+            res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
+            res.redirect(page)
+        }
+    } else {
+        res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
+        res.redirect(page)
+    };
 });
 
 // Redirect to FullURL

@@ -70,7 +70,7 @@
                 <% if (u.userid === user.userid) { %>
                     <a href="/account">Edit Account</a>
                 <% } else if (u.perms == "ADMIN") { %>
-                    <a href="/account/aEdit/<%- user.userid %>">Admin Edit</a>
+                    <a href="/account/edit/<%- user.userid %>">Admin Edit</a>
                 <% } %>
             <% }; %>
         </div>

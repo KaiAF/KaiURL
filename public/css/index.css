@@ -318,3 +318,9 @@ a.button {
   color: white;
   text-decoration: none;
 }
+
+.code {
+  background-color: rgb(218, 218, 218);
+  padding: 2px 0px 2px 0px;
+  font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New;
+}

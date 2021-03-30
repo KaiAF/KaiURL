@@ -116,7 +116,34 @@ $('#form-changelogNew').submit(function(event, type) {
     event.preventDefault();
     const formData = new URLSearchParams(new FormData(this));
     changelogNew(formData)
-})
+});
+
+// /api/dashboard
+
+$('#form-api').submit(function(e) {
+    e.preventDefault();
+    const formData = new URLSearchParams(getCookies()); //new URLSearchParams(new FormData(this));
+    fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((b) => {
+        let url = b.Url
+        if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
+        fetch(`${url}/url/key/generate`, {
+            method: 'POST',
+            body: formData
+        }).then((r) => r.json()).then((b) => {
+            if (b.OK == true) {
+                window.location.reload(1);
+            } else {
+                var g = document.getElementById('error');
+                if (g.innerText) {
+                    g.innerText = "";
+                    g.append(b.error || b.message);
+                } else {
+                    return g.append(b.error || b.message);
+                }
+            }
+        });
+    });
+});
 
 function stuff(event, type, formData) {
     fetch("/account/edit?type=" + type,
@@ -165,25 +192,29 @@ function shrink(formData, type) {
     let a;
     if (type == false) a = "/shrink";
     if (type == true) a = "/shrink/private"
-    fetch(a,
-    {   method: 'POST',
-        mode : 'same-origin',
-        credentials: 'same-origin' ,
-        body : formData
-    }).then((r) => r.json()).then((b) => {
-      if (b.OK == true) {
-          return window.location.assign("/shrink")
-      } else {
-          var g = document.getElementById('error');
-          if (g.innerText) {
-              g.innerText = ""
-              g.append(b.error);
-          } else {
-              return g.append(b.error);
-          }
-      }
-    });
-}
+
+    fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((re) => {
+        let url = re.Url;
+        if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
+        fetch(`${url}:3000/url${a}`, {
+            method: 'post',
+            body : formData
+        }).then((r) => r.json()).then((b) => {
+            if (b.OK == true) {
+                if (b.Latest_id) document.cookie = `Latest_id=${b.Latest_id}`
+                return window.location.assign("/shrink");
+            } else {
+                var g = document.getElementById('error');
+                if (g.innerText) {
+                    g.innerText = ""
+                    g.append(b.error);
+                } else {
+                    return g.append(b.error);
+                };
+            };
+        });
+    }).catch(e => { console.log(e); });
+};
 
 function changelogNew(f) {
     fetch('/changelog/new', {
@@ -204,4 +235,13 @@ function changelogNew(f) {
             }
         }
     })
+};
+
+function getCookies() {
+    var cookies = document.cookie.split(';');
+    var ret = '';
+    for (var i = 1; i <= cookies.length; i++) {
+        ret += cookies[i - 1];
+    }
+    return ret;
 }

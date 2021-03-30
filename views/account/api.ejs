@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "API Dashboard", url: "account/api/dashboard" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/account/api/dashboard", pageName: "Account" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <div class="center-container">
+                <p class="error" id="error"></p>
+                <p id="done"></p>
+                <% if (!key) { %>
+                    <h2>Create an API Key.</h2>
+                    <form method="post" class="form" id="form-api">
+                        <button class="form-button">Create Key.</button>
+                    </form>
+                <% } else { %>
+                    <h2>Your API Key</h2>
+                    <p class="error">Please treat this key as your password, do NOT show this to people you don't know.</p>
+                    <a id="spoiler" href="javascript:showSpoiler('apiKey', true)">Show Key</a>
+                    <div id="apiKey" style="visibility: hidden;">
+                        <p class="code"><%- key.key %></p>
+                    </div>
+                    <form method="post" class="form" id="form-api">
+                        <button class="form-button">Regenerate Key</button>
+                    </form>
+                <% } %>
+            </div>
+        </center>
+        </div>
+    </div>
+</body>
+</html>
+<script defer src="/js/form.js"></script>
+<script defer>
+    function showSpoiler(a, b) {
+        if (b) 
+        {
+            var g = document.getElementById(a);
+            g.style.visibility = 'visible';
+            var s = document.getElementById('spoiler');
+            s.outerHTML = `<a id="spoiler" href="javascript:showSpoiler('apiKey', false)">Hide Key</a>`
+        } else 
+        {
+            var g = document.getElementById(a);
+            g.style.visibility = 'hidden';
+            var s = document.getElementById('spoiler');
+            s.outerHTML = `<a id="spoiler" href="javascript:showSpoiler('apiKey', true)">Show Key</a>`
+        }
+    }
+</script>

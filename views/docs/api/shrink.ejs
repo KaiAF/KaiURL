@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: 'Documentation for Shrink API.', url: 'docs/api/shrink' }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/docs/api/shrink", pageName: "docs" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <h2>How it works</h2>
+            <p>
+                First, you <a href="/login">log in</a> / <a href="/register">register</a>. Then you go to <a href="/account/api/dashboard">your account dashboard</a> and press the button labled "api". <br>
+                From there, that is where you will be able to register an API key.
+            </p>
+            <h2>How to use the api</h2>
+            <p>
+                Example: <br>
+                GET : <span class="code">https://api.kaiurl.xyz/url/shrink?key={apiKey}&url=kaiurl.xyz</span> <br> <br>
+                Returns json body <span class="code">{"OK":true,"error":null,"Latest_id":"peqoo"}</span>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

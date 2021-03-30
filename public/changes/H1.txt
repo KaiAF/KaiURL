@@ -1,0 +1,5 @@
+Fixed Password reset bug.
+Changed "/account/aEdit/:id" to "/account/edit/:id". This is only available to admins.
+Added docs route.
+Added documentation for Shrink API. "/docs/api/shrink".
+Added "/account/api/dashboard" to allow users to create api keys.

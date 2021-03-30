@@ -233,7 +233,7 @@ a.post('/passwordReset', async function (req,res) {
     let find_user = await user.findOne({ officialEmail: enc_email, officialName: req.body.username.toUpperCase() }) || await user.findOne({ officialEmail: req.body.email.toUpperCase(), officialName: req.body.username.toUpperCase() });
     if (find_user == null) return res.status(404).json({ "OK": false, errorMessage: `Could not authenticate user.` });
     if (find_user.ifDiscord == true) return res.status(404).json({ "OK": false, errorMessage: `Cannot do password resets for Discord accounts.` });
-    let a = find_user.sinceLastReset
+    let a = find_user.sinceLastReset;
     let b = Date.now() + (24 * 60 * 60 * 1000);
     if (!find_user.pass) return res.status(404).json({ "OK": false, errorMessage: `This account is linked with Discord. So you can't reset a password.` });
     if (a < b) return res.status(404).json({ "OK": false, errorMessage: `You can only do a password reset every 24 hours.` });
@@ -276,23 +276,6 @@ a.get('/:shortid/find', async function (req, res) {
        "clicks": info.clicks,
        "created": Time
    });
-});
-
-a.post('/change-theme', async function (req, res) {
-    let theme = req.cookies.Theme;
-    let page = req.query.page;
-    if (theme) {
-        if (theme == "dark") {
-            res.cookie("Theme", "light", { maxAge: 3.154e+10 });
-            res.redirect(page)
-        } else {
-            res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
-            res.redirect(page)
-        }
-    } else {
-        res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
-        res.redirect(page)
-    };
 });
 
 a.get('/account', async function (req, res) {

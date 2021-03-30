@@ -37,7 +37,8 @@
     </div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
-        <span class="nav-acc"><a href="/account/edit">Edit Account</a></span>
+        <span class="nav-acc"><a href="/account/edit">Edit Account</a></span> <br>
+        <span class="nav-acc"><a href="/account/api/dashboard">API</a></span>
     </div>
     <div class="container">
         <div class="main">
@@ -105,7 +106,7 @@
                 <p class="bold"><a href="/kaipaste">KaiPaste:</a></p>
                 <table id="container">
                     <tr>
-                      <th>Title</th><th>All <%= u.user %>'s paste </th><th>Remove the paste</th><th>Edit</th>
+                      <th>Paste</th><th>Remove</th><th>Edit</th>
                     </tr>
                     <tbody>
                       <% text.forEach(text => { %>
@@ -114,11 +115,7 @@
                           <% } %>
                           <% if (text.discordID === u.userID) { %>
                       <tr>
-                        <td>
-                          <p><%= text.title %></p>
-                        </td>
-                        <td><a id="id" class="title" href="/kaipaste/<%= text.id %>" target="__blank"
-                            title="<%= text.title %>">https://www.kaiurl.xyz/kaipaste/<%= text.id %> </a>
+                        <td><a id="id" class="title" href="/kaipaste/<%= text.id %>" target="__blank" title="<%= text.title %>"><%= text.title %></a>
                         </td>
                         <td>
                           <form method="post" action="/kaipaste/<%= text.user %>/<%= text.id %>/remove">

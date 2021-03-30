@@ -3,3 +3,4 @@ Changed "/account/aEdit/:id" to "/account/edit/:id". This is only available to a
 Added docs route.
 Added documentation for Shrink API. "/docs/api/shrink".
 Added "/account/api/dashboard" to allow users to create api keys.
+Removed shrturl.link as it's just too much for me to control.

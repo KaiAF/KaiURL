@@ -196,7 +196,7 @@ function shrink(formData, type) {
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((re) => {
         let url = re.Url;
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
-        fetch(`${url}:3000/url${a}`, {
+        fetch(`${url}/url${a}`, {
             method: 'post',
             body : formData
         }).then((r) => r.json()).then((b) => {

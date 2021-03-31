@@ -122,10 +122,11 @@ $('#form-changelogNew').submit(function(event, type) {
 
 $('#form-api').submit(function(e) {
     e.preventDefault();
-    const formData = new URLSearchParams(getCookies()); //new URLSearchParams(new FormData(this));
+    const formData = new URLSearchParams(`token=${getCookie('token')}`); //new URLSearchParams(new FormData(this));
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((b) => {
         let url = b.Url
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
+        if (b.debug == true && b.Url == "http://localhost") url = "http://localhost:3000"
         fetch(`${url}/url/key/generate`, {
             method: 'POST',
             body: formData
@@ -237,11 +238,18 @@ function changelogNew(f) {
     })
 };
 
-function getCookies() {
-    var cookies = document.cookie.split(';');
-    var ret = '';
-    for (var i = 1; i <= cookies.length; i++) {
-        ret += cookies[i - 1];
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
     }
-    return ret;
-}
+    return "";
+  }

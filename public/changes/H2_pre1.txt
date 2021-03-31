@@ -1,0 +1,3 @@
+Added robots.txt
+Added a direct url link to recent changelog.
+Fixed API Key not regenerating properly.

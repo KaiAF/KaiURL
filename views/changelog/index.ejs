@@ -20,7 +20,7 @@
                 <% if (c[0]) { %>
                 <h2><%- c[0].title %> (<%- c[0].version %>)</h2>
                 <p>Changes:<br><%- c[0].description %></p>
-                <small><%- c[0].date %> (<%- d.format(c[0].date, 'en-us') %>)</small>
+                <small><%- c[0].date %> (<%- d.format(c[0].date, 'en-us') %>) <br> <a href="/changelog/<%- c[0].Id %>">Direct URL.</a> </small>
                 <% } else { %>
                     <h2>Title:<br>null</h2>
                     <p>Version:<br>null</p>

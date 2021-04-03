@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: 'KaiURL Image hosting', url: 'i' }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "i", pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <%- image._id %>
+            <% if (!image.removed) { %>
+                <form action="/i/<%- image.filename %>/delete" method="post" class="form">
+                    <button class="form-button">Delete</button>
+                </form>
+            <% } else { %>
+                <form action="/i/<%- image.filename %>/add" method="post" class="form">
+                    <button class="form-button">Add</button>
+                </form>
+            <% } %>
+            <% if (image.contentType == "image/png" || image.contentType == "image/jpeg") { %>
+                <img src="/i/<%- image.filename %>/embed" alt="Image" width="120" height="120">
+                <br>
+            <% } else { %>
+                <p><%- image.contentType %></p>
+            <% } %>
+            <% if (image.removed) { %>
+                <a href="/i/<%- image.filename %>/embed">(Direct URL)</a>
+                <% if (u.role == "Owner") { %>
+                    <form action="/i/<%-image.filename%>/delete/admin" method="post" class="form">
+                        <button class="form-button">Owner Delete!</button>
+                    </form>
+                <% } %>
+            <% } else { %>
+                <a href="/i/<%- image.filename %>">(Direct URL)</a>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

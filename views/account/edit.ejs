@@ -19,12 +19,12 @@
             <div class="center-container">
             <p class="error" id="error"></p>
             <% if (!image) { %>
-                <form class="form" action="/img" method="POST" enctype="multipart/form-data">
+                <form class="form" action="/avatar" method="POST" enctype="multipart/form-data">
                     <input name="Image" type="file">
                     <button type="submit" class="form-button">Submit</button>
                 </form>
                 <% } else { %>
-                <form class="form" action="/img/delete" method="POST" enctype="multipart/form-data">
+                <form class="form" action="/avatar/delete" method="POST" enctype="multipart/form-data">
                     <button type="submit" class="form-button">Delete Avatar</button>
                 </form>
                 <% } %>

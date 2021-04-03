@@ -34,8 +34,8 @@ a.post('/login', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let red;
-    if (req.query.redirect == "/kaipaste") red = 'kaipaste';
-    if (req.query.redirect !== "/kaipaste") red = 'account';
+    if (req.query.redirect) red = req.query.redirect;
+    if (!req.query.redirect) red = null;
     if (username && pass) {
         // ENC PASS:
         var parse_pass = crypto.enc.Utf8.parse(pass);
@@ -48,6 +48,7 @@ a.post('/login', async function (req, res) {
                 res.cookie('token', validate_user.userid);
                 res.cookie('userName', validate_user.user);
                 res.cookie('auth_key', r);
+                res.cookie('auth', validate_user._id);
                 res.json({ 'OK': true, redirect: `${red}`, error: null });
             });
         };
@@ -197,7 +198,8 @@ a.get('/callback', async function (req, res) {
                  res.cookie('token', body.id);
                  res.cookie('userName', body.username);
                  res.cookie('auth_key', r);
-                 res.redirect("/account")
+                 res.cookie('auth', findUser._id);
+                 res.redirect("/account");
                 }).catch(err => res.send(err));
             };
         });
@@ -282,8 +284,9 @@ a.get('/account', async function (req, res) {
     let username = req.cookies.userName;
     let userid = req.cookies.token;
     if (username && userid) {
-        let userInfo = await user.findOne({ userid: req.cookies.token, user: username }, { _id: 0, email: 0, pass: 0, auth_key: 0, resetId: 0 }).exec();
-        res.send(userInfo)
+        let userInfo = await user.findOne({ userid: req.cookies.token, user: username }, { _id: 0, email: 0, pass: 0, auth_key: 0, resetId: 0, officialEmail: 0 }).exec();
+        res.header("Content-Type",'application/json');
+        res.send(JSON.stringify(userInfo, null, 2.5));
     } else {
         res.status(404).json({ "auth": false });
     };

@@ -12,11 +12,22 @@ const text = require('../db/kaipaste');
 const blockedName = require('../db/blockedName');
 const apiKey = require('../db/apiKey');
 
+var url = process.env.MONGODB;
 let gfs;
-var conn = mongoose.connection;
-    conn.once('open', async function() {
-    gfs = Grid(conn.db, mongoose.mongo);
-    gfs.collection('kaiurlImages');
+let gfs2;
+let gridFSBucket;
+const conn = mongoose.createConnection(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+});
+conn.once('open', async function() {
+    gridFSBucket = new mongoose.mongo.GridFSBucket(conn.db, { bucketName: 'Images' });
+    gfs = Grid(conn.db, mongoose.mongo);    
+    gfs.collection('Images');
+    gfs2 = Grid(conn.db, mongoose.mongo);
+    gfs2.collection('kaiurlImages');
 });
 
 a.get('/', async function (req, res) {
@@ -27,8 +38,8 @@ a.get('/', async function (req, res) {
     if (userid && username) {
         let check_user = await user.findOne({ userid: userid, user: username });
         let find_blockName = await blockedName.find({}, { name: 1, _id: 0 });
-        let find_pvurl = await pvurl.find({ userID: userid }, { short: 1, full: 1, _id: 0, date: 1, clicks: 1, official: 1, userID: 1, Domain: 1 }).exec()
-        let find_text = await text.find({ userID: userid }, { id: 1, title: 1, user: 1, userID: 1, description: 1, date: 1, _id: 0, removed: 1 }).exec();
+        let find_pvurl = await pvurl.find({ userID: userid }, { short: 1, full: 1, _id: 0, date: 1, clicks: 1, official: 1, userID: 1, Domain: 1 }).sort({ date: -1 }).exec()
+        let find_text = await text.find({ userID: userid }, { id: 1, title: 1, user: 1, userID: 1, description: 1, date: 1, _id: 0, removed: 1 }).sort({ date: -1 }).exec();
         if (check_user == null) {
             res.clearCookie("token");
             res.clearCookie("userName");
@@ -37,7 +48,7 @@ a.get('/', async function (req, res) {
             res.render('./account/index', { u: check_user, log: true, theme: theme, crypto: crypto, p: find_pvurl, text: find_text, bName: find_blockName });
         }
         } else {
-            res.redirect('/login');
+            res.redirect('/login?redirect=/account');
         };
 });
 
@@ -57,7 +68,7 @@ a.get('/edit', async function (req, res) {
             res.render('./account/edit', { u: check_user, log: true, theme: theme, image: image, errorMessage: null });
         };
     } else {
-        res.redirect('/login');
+        res.redirect('/login?redirect=/account/edit');
     };
 });
 
@@ -112,6 +123,40 @@ a.get('/api/dashboard', async function (req, res) {
     res.render('./account/api', { theme: theme, u: checkUser, key: checkapiKey });
 });
 
+a.get('/files', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (!checkUser) return res.redirect('/login?redirect=/account/files');
+
+    await gfs.files.find({user: checkUser._id}).sort({ uploadDate: -1 }).toArray((e, files) => {
+        if (!files || files.length === 0) return console.log('error');
+        let a = [];
+        files.map(f => {
+            a.push(f);
+        })
+        res.render('./account/img', { theme: theme, u: checkUser, img: a });
+    });
+});
+
+a.post('/files/:id/remove', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (!checkUser) return res.status(403).json({ OK: false, error: 'Could not find user.' });
+    await gfs.files.findOne({ filename: req.params.id, user: checkUser._id }, async function (e, r) {
+        if (e) return res.status(500).json({ OK: false, erorr: e });
+        if (r == null) return res.status(500).json({ OK: false, error: `Could not find file` });
+        await gfs.files.updateOne({ _id: r._id }, { $set: { removed: true } }).then(() => {
+            res.redirect('/account/files');
+        });
+    });
+});
+
 a.get('/edit/:id', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
@@ -120,9 +165,9 @@ a.get('/edit/:id', async function (req, res) {
     let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
     let aUser = await user.findOne({ userid: req.params.id });
 
-    if (checkUser == null) return res.status(403).send('You do not have access to this page.');
-    if (checkUser.perms !== "ADMIN") return res.status(403).send('You do not have access to this page.');
-    if (aUser == null) return res.status(403).send('Could not find user.');
+    if (checkUser == null) return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme });
+    if (checkUser.perms !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme });
+    if (aUser == null) return res.status(404).render('./error/index', { errorMessage: 'Could not find user.', theme: theme });
 
     res.render('./account/adminEdit', { theme: theme, u: checkUser, user: aUser, dEmail: atob });
 });

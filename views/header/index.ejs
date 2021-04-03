@@ -7,20 +7,16 @@
 <% if (page == "/login") { %> <a style="color: #28a745;" href="/login">Log In</a> <% } else { %> <a href="/login">Log In</a> <% } %>
 <% } else { %>
 <% if (page == "/account") { %> <a style="color: #28a745;" href="/account">Account</a> <% } else { %> <a href="/account">Account</a> <% } %>
-<a href="/logout">Log out</a>
+ <a href="/logout">Log out</a>
 <% } %>
 <% if (page == "/changelog") { %> <a style="color: #28a745" href="/changelog">Changelog</a> <% } else { %> <a href="/changelog">Changelog</a> <% } %>
 <% if (page == "/license") { %> <a style="color: #28a745" href="/license">License</a> <% } else { %> <a href="/license">License</a> <% } %>
-<form class="change-theme" method="POST" action="/change-theme?page=<%- page %>">
-<% if (theme) { %>
-    <% if (theme == "dark") { %>
-        <button type="submit" class="change-theme-button"><a>Theme: 🌕</a></button>
-    <% } else { %>
-        <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button>
-    <% }} else { %>
-        <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button>
-        <% } %>
-</form>
-<a href="/r/twitter"><img alt="Twitter" style="vertical-align:middle;" src="https://abs.twimg.com/favicons/twitter.ico"> Twitter</a>
-<a href="/r/source"><img alt="GitHub" style="vertical-align: middle; width: 32px; height: 32px;" src="https://github.com/fluidicon.png"> GitHub</a>
-<a href="/support"><img alt="Bug report" src="/image/bug.png" style="width: 30px; height: 30px; vertical-align: middle;"> Report a bug</a>
+ <form class="change-theme" method="POST" action="/change-theme?page=<%- page %>">
+<% if (theme) { if (theme == "dark") { %>
+ <button type="submit" class="change-theme-button"><a>Theme: 🌕</a></button> <% } else { %>
+ <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button> <% }} else { %>
+ <button type="submit" class="change-theme-button"><a>Theme: 🌑</a></button> <% } %>
+ </form>
+ <a href="/r/twitter"><img alt="Twitter" style="vertical-align:middle;" src="https://abs.twimg.com/favicons/twitter.ico"> Twitter</a>
+ <a href="/r/source"><img alt="GitHub" style="vertical-align: middle; width: 32px; height: 32px;" src="https://github.com/fluidicon.png"> GitHub</a>
+ <a href="/support"><img alt="Bug report" src="/image/bug.png" style="width: 30px; height: 30px; vertical-align: middle;"> Report a bug</a>

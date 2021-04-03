@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: 'KaiURL Image hosting', url: 'i' }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "i", pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <h2>How to use KaiURL Image hosting..</h2>
+            <p>First, you need to create an account (If you already have one, log in). <br> Once you log in, go to <a href="/account/api/dashboard">API dasboard</a>. <br>
+            Then, create your API key.</p>
+            <p>You can use any Image uploader, in this case, I will be using ShareX.</p>
+            <p>Send a POST Request to <p class="code">https://www.kaiurl.xyz/i</p> and set the URL parameters to "apiKey?={your api Key}" <br> The file form name is "File"</p>
+            <p>That should be it. Image example: </p>
+            <div class="img">
+                <img class="image" src="/i/ExampleImage_imageHosting1(Kai).png" alt="Example Image">
+                <img class="image" src="/i/ExampleImage_imageHosting2(Kai).png" alt="Example Image">
+            </div>
+        </center>
+    </div>
+    </div>
+</body>
+</html>

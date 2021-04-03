@@ -90,9 +90,8 @@ $("#form-username").on("keyup", function(e) {
 $("#form-login").submit(function(event, type) {
     event.preventDefault();
     const formData = new URLSearchParams(new FormData(this));
-    let red;
-    if (window.location.search == "?redirect=/kaipaste") red = '/kaipaste'
-    if (window.location.search !== "?redirect=/kaipaste") red = '/account'
+    let red = window.location.search.replace('?redirect=', '');
+    if (!window.location.search) red = '/account'
     rl(formData, "login", red)
 });
 
@@ -107,7 +106,7 @@ $("#form-shrink").submit(function(event, type) {
 $("#form-shrink-private").submit(function(event, type) {
     event.preventDefault();
     const formData = new URLSearchParams(new FormData(this));
-    shrink(formData, true)
+    shrink(formData, true, getCookie('token'), getCookie('auth_key'));
 });
 
 // Changelog
@@ -126,7 +125,8 @@ $('#form-api').submit(function(e) {
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((b) => {
         let url = b.Url
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
-        if (b.debug == true && b.Url == "http://localhost") url = "http://localhost:3000"
+        if (b.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
+        if (b.debug == true && url == "http://localhost") url = "http://localhost:3000"
         fetch(`${url}/url/key/generate`, {
             method: 'POST',
             body: formData
@@ -175,8 +175,8 @@ function rl(formData, type, q) {
         body : formData
     }).then((r) => r.json()).then((b) => {
       if (b.OK == true) {
-          if (b.redirect == "account") return window.location.assign("/account")
-          if (b.redirect == "kaipaste") return window.location.assign("/kaipaste")
+          if (!b.redirect) return window.location.assign('/account');
+          if (b.redirect) return window.location.assign(b.redirect);
       } else {
           var g = document.getElementById('error');
           if (g.innerText) {
@@ -189,17 +189,19 @@ function rl(formData, type, q) {
     });
 }
 
-function shrink(formData, type) {
+function shrink(formData, type, auth, auth_key) {
     let a;
     if (type == false) a = "/shrink";
-    if (type == true) a = "/shrink/private"
-
+    if (type == true) a = `/shrink/private/${auth}?q=${auth_key}`
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((re) => {
-        let url = re.Url;
+        let url = re.Url
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
+        if (re.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
+        if (re.debug == true && url == "http://localhost") url = "http://localhost:3000"
         fetch(`${url}/url${a}`, {
             method: 'post',
-            body : formData
+            body : formData,
+            credentials: 'same-origin'
         }).then((r) => r.json()).then((b) => {
             if (b.OK == true) {
                 if (b.Latest_id) document.cookie = `Latest_id=${b.Latest_id}`
@@ -252,4 +254,4 @@ function getCookie(cname) {
       }
     }
     return "";
-  }
+}

@@ -33,92 +33,55 @@ app.use('/r', require('./routes/redirect/index')); // Redirects.
 app.use('/shrink', require('./routes/shrink/index')); // Creating the short url.
 app.use('/kaipaste', require('./routes/kaipaste/index')); // KaiPaste. Like pastebin, but worse.
 app.use('/user', require('./routes/account/user')); // This will display the users Profile.
-app.use('/img', require('./routes/account/avatar')); // Avatar route.
-app.use('/passwordReset', require('./routes/resetP/index'));
+app.use('/avatar', require('./routes/account/avatar')); // Avatar route.
+app.use('/passwordReset', require('./routes/resetP/index')); // Reset passwords!
 app.use('/support', require('./routes/support/index')); // Bug reports.
 app.use('/changelog', require('./routes/changelog/index')); // Changelogs!
 app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
-app.use(checkUser); // This function is there to check if the user is logged in or not.
+app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
 app.use(express.static('public')); // Public code. Like the script files.
 
-// A function to check if the user is logged in or not.
-
-async function checkUser(req, res, next) {
-    let userid = req.cookies.token;
-    let username = req.cookies.userName;
-    let authKey = req.cookies.auth_key;
-    if (userid && username && authKey) {
-       await user.findOne({ userid: userid, officialName: username.toUpperCase(), auth_key: authKey }, (err, re) => {
-            if (err) return res.send(err);
-            if (re == null) {
-                clearCookie(req,res,next());
-            }
-            if (re) {
-                if (re.auth_key === authKey) {
-                    res.cookie("auth", re._id); // The user's mongo Id.
-                    next();
-                } else {
-                    clearCookie(req,res,next());
-                }
-            };
-        }).catch(e => {
-            console.log(e)
-            clearCookie(req,res,next());
-        });
-    } else {
-        clearCookie(req,res,next());
-    }
-};
-
-a.get('/', async function (req, res, next) {
+a.get('/', async function (req, res ){
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-      let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-          res.render('./home/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./home/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./home/index', { u: checkUser, theme: theme });
 });
 
-a.get('/u', async function (req,res) {
+a.get('/u', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
     let url = await shorturl.find().sort({ date: -1 });
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./u/index', { r: url, u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./u/index', { r: url, u: null, log: false, theme: theme });
-    }
+    res.render('./u/index', { r: url, u: checkUser, theme: theme });
 });
 
 // Log in / Register
 
 a.get('/login', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./login/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./login/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./login/index', { u: checkUser, theme: theme });
 });
 
 a.get('/register', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./register/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./register/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./register/index', { u: checkUser, theme: theme });
 });
 
 a.get('/logout', (req, res) => {
@@ -130,62 +93,52 @@ a.get('/logout', (req, res) => {
 
 a.get('/contact', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./contact/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./contact/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./contact/index', { u: checkUser, theme: theme });
 });
 
 a.get('/tos', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./tos/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./tos/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./tos/index', { u: checkUser, theme: theme });
 });
 
 a.get('/about', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./about/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./about/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./about/index', { u: checkUser, theme: theme });
 });
 
 a.get('/credit', async function (req, res) {
     let theme = req.cookies.Theme;
-    if (!theme) theme = null
+    if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./credit/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./credit/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./credit/index', { u: checkUser, theme: theme });
 });
 
 a.get('/license', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let auth = req.cookies.auth;
-    if (auth) {
-        let check_user = await user.findOne({ _id: auth, userid: req.cookies.token }).catch(e => { return res.redirect('/logout') })
-        res.render('./copyright/index', { u: check_user, log: true, theme: theme });
-    } else {
-        res.render('./copyright/index', { u: null, log: false, theme: theme });
-    }
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) checkUser = null;
+    res.render('./copyright/index', { u: checkUser, theme: theme });
 });
 
 a.get('/config.json', async function (req, res) {
@@ -197,17 +150,17 @@ a.get('/config.json', async function (req, res) {
 a.post('/change-theme', async function (req, res) {
     let theme = req.cookies.Theme;
     let page = req.query.page;
-    if (theme) {
+    if (theme && page) {
         if (theme == "dark") {
             res.cookie("Theme", "light", { maxAge: 3.154e+10 });
-            res.redirect(page)
+            res.redirect(page);
         } else {
             res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
-            res.redirect(page)
+            res.redirect(page);
         }
     } else {
         res.cookie("Theme", "dark", { maxAge: 3.154e+10 });
-        res.redirect(page)
+        res.redirect('/');
     };
 });
 
@@ -248,15 +201,27 @@ a.get('/:Name/:id', async function (req, res) {
 });
 
 function clearCookie(req, res, next) {
-    res.clearCookie("auth")
-    res.clearCookie("token")
-    res.clearCookie("userName")
-    res.clearCookie("auth_key")
-    res.cookie("auth", "000000000000000000000000"); // Auth Id is set to all zeros as it would crash if it was set to null. Weird.
+    res.clearCookie("auth");
+    res.clearCookie("token");
+    res.clearCookie("userName");
+    res.clearCookie("auth_key");
+    res.clearCookie('auth');
     next
-}
+};
+
+a.use(function (req, res, next) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    res.status(404).render('./error/index', { errorMessage: `This page was not found.`, u: null, theme: theme });
+});
 
 app.use('/', a);
+
+// error handler
+app.use(function (err, req, res, next) {
+    res.status(500).send(err.message)
+});
+
 app.listen(process.env.PORT || 80, function () {
     console.log(`Website On`);
 });

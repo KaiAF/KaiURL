@@ -9,7 +9,6 @@ require('dotenv').config();
 var url = process.env.MONGODB;
 
 const storage = new gridFS({ url, file: (req, file) => {
-    if (req.query.apiKey !== "DKSBGJADSGKHJ") {
         if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
             return {
                 bucketName: 'kaiurlImages',
@@ -18,16 +17,6 @@ const storage = new gridFS({ url, file: (req, file) => {
         } else {
             return null;
         }
-    } else {
-        if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
-            return {
-                bucketName: 'kaiurlImages',
-                filename: `${file.originalname}`
-            };
-        } else {
-            return null;
-        }
-    }
 }});
 const Filter = function(req, file, cb) {
     if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
@@ -40,11 +29,18 @@ const Filter = function(req, file, cb) {
 const upload = multer({ storage: storage, limits: { fileSize: 1024 * 1024 * 5 }, fileFilter: Filter});
 
 let gfs;
-var conn = mongoose.connection;
-    conn.once('open', async function() {
-    gfs = Grid(conn.db, mongoose.mongo);
+let gridFSBucket;
+const conn = mongoose.createConnection(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+});
+conn.once('open', async function() {
+    gridFSBucket = new mongoose.mongo.GridFSBucket(conn.db, { bucketName: 'kaiurlImages' });
+    gfs = Grid(conn.db, mongoose.mongo);    
     gfs.collection('kaiurlImages');
-    console.log(`Got all images`);
+    console.log('Got Avatars')
 });
 
 a.get('/', (req, res) => {
@@ -79,7 +75,7 @@ a.get('/:fileName', async function (req, res) {
     await gfs.files.findOne({ filename: name }, (err, file) => {
         if (err) return console.log(err);
         if (!file || file.length === 0) return res.status(404).send(`Could not find file '${name}'.`);
-        const readstream = gfs.createReadStream(file.filename);
+        const readstream = gridFSBucket.openDownloadStream(file._id);
         return readstream.pipe(res);
     });
 });

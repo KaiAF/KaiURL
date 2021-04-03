@@ -1,0 +1,6 @@
+Changed the formatting for the meta tags.
+Updated code to make pages load a bit faster.
+Added page <a href="/i">"/i"</a>
+Added Image uploading <a href="/i/ExampleImage_imageHosting1(Kai).png">Example Image/a>!
+Updated GridFS.
+Added <a href="/account/images">"/account/images"</a> to view and remove your images.

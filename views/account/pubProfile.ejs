@@ -32,80 +32,42 @@
     <%- include('../meta/index', { page: name + verified, url: `user/${user.user}` }); %><% } %>
 </head>
 <body>
-    <div id="sideBar" class="sidebar">
-        <%- include('../header/index', { page: "/user/" + user.user, pageName: "Home" }) %>
-    </div>
+<div id="sideBar" class="sidebar">
+<%- include('../header/index', { page: "/user/" + user.user, pageName: "Home" }) %>
+</div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
         <div class="main">
             <center>
-            <div class="center-container">
-            <% if (verified) { %>
-                <h2><p class="role">Verified <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2>
-            <% } %>
-            <% if (admin) { %>
-                <h2><p class="role">Admin <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2>
-            <% } %>
-            <% if (owner) { %>
-                <h2><p class="role">Owner <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2>
-            <% } %>
-            <% if (bFix) { %>
-                <h2><p class="role">Bug Hunter <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2>
-            <% } %>
-            <% if (image) { %>
-            <% if (image.filename === `${user.userid}-${user._id}.png`) { %>
-                <img src="/avatar/<%= user.userid %>-<%= user._id %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;">
-            <% } else if (image.filename === `${user.userid}.png`) { %>
-                <img src="/avatar/<%= user.userid %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;">
-            <% }} %>
-            <h2 class="bold"><%= name %></h2>
-            <% if (user.description) { %>
-            <p>
-                <%= user.description %>
-            </p>
-            <% } %>
-            <p>
-                Number of URLs:<br>
-                <%= uUrl.length %>
-            </p>
-            <% if (u) { %>
-                <% if (u.userid === user.userid) { %>
-                    <a href="/account">Edit Account</a>
-                <% } else if (u.perms == "ADMIN") { %>
-                    <a href="/account/edit/<%- user.userid %>">Admin Edit</a>
-                <% } %>
-            <% }; %>
-        </div>
-        <% if (user.twitter || user.youtube || user.discord || user.glimesh) { %>
+            <div class="center-container"><% if (verified) { %>
+            <h2><p class="role">Verified <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } if (admin) { %>
+
+            <h2><p class="role">Admin <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } if (owner) { %>
+
+            <h2><p class="role">Owner <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } if (bFix) { %>
+
+            <h2><p class="role">Bug Hunter <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } if (image) { if (image.filename === `${user.userid}-${user._id}.png`) { %>
+
+            <img src="/avatar/<%= user.userid %>-<%= user._id %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;"><% } else if (image.filename === `${user.userid}.png`) { %>
+
+            <img src="/avatar/<%= user.userid %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;"><% }} %>
+
+            <h2 class="bold"><%= name %></h2><% if (user.description) { %>
+            <p><%= user.description %></p><% } %>
+            <p>Number of URLs:<br><%= uUrl.length %></p><% if (u) { if (u.userid === user.userid) { %>
+            <a href="/account">Edit Account</a><% } else if (u.perms == "ADMIN" || u.perms == "OWNER") { %>
+            <a href="/account/edit/<%- user.userid %>">Admin Edit</a><% }}; %>
+        </div><% if (user.twitter || user.youtube || user.discord || user.glimesh) { %>
         <br>
         <div class="center-container">
-                <p>
-                    Links:
-                </p>
-                <% if (user.twitter) { %>
-                <p>
-                    <a href="https://twitter.com/<%= user.twitter %>" target="_" class="link">Twitter</a>
-                </p>
-                <% } else { } %>
-                <% if (user.youtube) { %>
-                <p>
-                    <a href="https://www.youtube.com/<%= user.youtube %>" target="_" class="link">Youtube</a>
-                </p>
-                <% } else { } %>
-                <% if (user.discord) { %>
-                <p>
-                    <%= user.discord %>
-                </p>
-                <% } else { } %>
-                <% if (user.glimesh) { %>
-                <p>
-                    <a href="https://glimesh.tv/<%= user.glimesh %>" target="_" class="link">Glimesh</a>
-                </p>
-                <% } else { } %>
-        </div>
-        <% } %>
+                <p>Links:</p><% if (user.twitter) { %>
+                <p><a href="https://twitter.com/<%= user.twitter %>" target="_" class="link">Twitter</a></p><% } if (user.youtube) { %>
+                <p><a href="https://www.youtube.com/<%= user.youtube %>" target="_" class="link">Youtube</a></p><% } if (user.discord) { %>
+                <p><%= user.discord %></p><% } if (user.glimesh) { %>
+                <p><a href="https://glimesh.tv/<%= user.glimesh %>" target="_" class="link">Glimesh</a></p><% } %>
+        </div><% } %>
     </div>
 </div>
 </body>

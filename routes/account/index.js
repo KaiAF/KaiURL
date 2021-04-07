@@ -166,8 +166,11 @@ a.get('/edit/:id', async function (req, res) {
     if (checkUser == null) return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: null });
     if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     if (aUser == null) return res.status(404).render('./error/index', { errorMessage: 'Could not find user.', theme: theme, u: checkUser });
-
-    res.render('./account/adminEdit', { theme: theme, u: checkUser, user: aUser, dEmail: atob });
+    let userPerms;
+    let uPerms;
+    userPerms = await checkPerm(aUser.userid)
+    uPerms = await checkPerm(checkUser.userid)
+    res.render('./account/adminEdit', { theme: theme, u: checkUser, user: aUser, dEmail: atob, userPerm: userPerms, uPerm: uPerms });
 });
 
 a.post('/edit/:id/change', async function (req, res) {

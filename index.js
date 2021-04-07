@@ -41,7 +41,7 @@ app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
 app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
 app.use(express.static('public')); // Public code. Like the script files.
 
-a.get('/', async function (req, res ){
+a.get('/', async function (req, res){
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let auth = req.cookies.auth;

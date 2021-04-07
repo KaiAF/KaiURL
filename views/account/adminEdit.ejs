@@ -14,7 +14,7 @@
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
-        <div class="main"><% if (user.perms == "OWNER") { %>
+        <div class="main"><% if (u.perms !== "OWNER" && userPerm == "ADMIN") { %>
             <p>Can't see other Admins information..</p><% } else { %>
             <center><% let perms; if (user.perms == null) {perms = "Member"} else { perms = user.perms }; %>
                 <div class="center-container">
@@ -23,7 +23,7 @@
                     Email: <%- dEmail(user.email) %><br><% } %>
                     Permissions: <%- perms %><br>
                     Join Date: <%- user.joinDate.toUTCString() %>
-                <br><% if (user.perms !== "ADMIN" || user.perms !== "OWNER") { %>
+                <br><% if (userPerm !== "ADMIN" || u.perms == "OWNER") { %>
                     <form action="/account/edit/<%-user.userid %>/change" method="post" id="form-change-user" class="form">
                         <select name="option" class="form-input" onchange="onOptionChange()">
                             <option value="username" class="form-input">Change Username</option>
@@ -36,8 +36,8 @@
                         <select class="form-input" name="changePerms" id="changePerms" style="display: none;">
                             <option value="member">Member</option>
                             <option value="bug-hunter">Bug Hunter</option>
-                            <option value="mod">Moderator</option>
-                            <option value="admin">Admin</option>
+                            <option value="mod">Moderator</option><% if (u.perms == "OWNER") { %>
+                            <option value="admin">Admin</option><% } %>
                         </select>
                         <br>
                         <button class="form-button">Change</button>
@@ -47,7 +47,7 @@
         </div>
     </div>
 </body>
-</html><% if (u.perms === "ADMIN") { %>
+</html>
 <script defer>
     function onOptionChange() {
         let form = document.forms["form-change-user"];
@@ -66,4 +66,4 @@
             document.getElementById("changePerms").style.display = 'inline-block';
         }
     }
-</script><% } %>
+</script>

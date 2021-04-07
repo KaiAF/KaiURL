@@ -125,6 +125,38 @@ a.post('/register', async function (req, res) {
     }
 });
 
+a.post('/remove', async function (req, res) {
+    await user.findOne({ _id: req.body.userId }, async function (e, r) {
+        if (e) return res.status(500).json({ OK: false, error: e });
+        if (!r) return res.status(500).json({ OK: false, error: `Could not authenticate user.` });
+        if (r.perms !== "ADMIN") return res.status(500).json({ OK: false, error: `Could not authenticate user.` });
+        await shortURL.findOne({ _id: req.body.id }, async function (er, re) {
+            if (er) return res.status(500).json({ OK: false, error: e });
+            if (!re) return res.status(500).json({ OK: false, error: `Could not find url.` });
+            if (re.removed) return res.status(500).json({ OK: false, error: `This url is already removed` });
+            await shortURL.updateOne({ _id: req.body.id }, { $set: { removed: true } }).then(() => {
+                res.json({ OK: true });
+            });
+        });
+    });
+});
+
+a.post('/add', async function (req, res) {
+    await user.findOne({ _id: req.body.userId }, async function (e, r) {
+        if (e) return res.status(500).json({ OK: false, error: e });
+        if (!r) return res.status(500).json({ OK: false, error: `Could not authenticate user.` });
+        if (r.perms !== "ADMIN") return res.status(500).json({ OK: false, error: `Could not authenticate user.` });
+        await shortURL.findOne({ _id: req.body.id }, async function (er, re) {
+            if (er) return res.status(500).json({ OK: false, error: e });
+            if (!re) return res.status(500).json({ OK: false, error: `Could not find url.` });
+            if (!re.removed) return res.status(500).json({ OK: false, error: `This url is already removed` });
+            await shortURL.updateOne({ _id: req.body.id }, { $set: { removed: false } }).then(() => {
+                res.json({ OK: true });
+            });
+        });
+    });
+});
+
 // Log in with Discord Account
 
 a.get('/callback', async function (req, res) {

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: "URLs", url: "u" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/u/admin", pageName: "URLs" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <table id="container">
+                <tr><th>Link</th><th>Remove</th></tr>
+                <tbody><% r.forEach(e => { %>
+                    <tr>
+                        <td>
+                            <a id="id" class="title" href="/<%= e.short %>" target="__blank" title="<%= e.full %>">https://www.kaiurl.xyz/<%= e.short %>  </a>
+                        </td>
+                        <td><% if (e.removed) { %>
+                        <p id="error" class="error"></p>
+                        <form action="/api/add" method="post" id="form-url-add">
+                            <input type="hidden" name="id" value="<%=e._id%>">
+                            <input type="hidden" name="userId" value="<%=u._id%>">
+                            <button class="form-button">Add</button>
+                        </form><% }else { %>
+                            <p id="error" class="error"></p>
+                            <form action="/api/remove" method="post" id="form-url-remove">
+                                <input type="hidden" name="id" value="<%=e._id%>">
+                                <input type="hidden" name="userId" value="<%=u._id%>">
+                                <button class="form-button">Remove</button>
+                            </form><% } %>
+                        </td>
+                    </tr><% }); %>
+                </tbody>
+            </table>
+        </center>
+        </div>
+    </div>
+</body>
+</html>
+<script defer src="/js/form.js"></script>

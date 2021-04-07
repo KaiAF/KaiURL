@@ -1,2 +1,2 @@
-Make a format for changelogs.
-Let users use the site for image hosting.
+1. Make a format for changelogs.
+2. Make public URLs not public, and require urls (that are permanent) to be logged in.

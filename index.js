@@ -62,6 +62,18 @@ a.get('/u', async function (req, res) {
     res.render('./u/index', { r: url, u: checkUser, theme: theme });
 });
 
+a.get('/u/admin', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    if (checkUser == null) return res.status(404).render('./error/index', { theme: theme, u: null, errorMessage: `This page was not found.` });
+    if (checkUser.perms !== "OWNER") return res.status(404).render('./error/index', { theme: theme, u: null, errorMessage: `This page was not found.` });
+    let url = await shorturl.find().sort({ date: -1 });
+    res.render('./u/admin', { u: checkUser, theme: theme, r: url });
+});
+
 // Log in / Register
 
 a.get('/login', async function (req, res) {
@@ -219,7 +231,10 @@ app.use('/', a);
 
 // error handler
 app.use(function (err, req, res, next) {
-    res.status(500).send(err.message)
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    res.status(500).render('./error/index', { theme: theme, u: null, errorMessage: `Error 500! Contact an admin to review this error. <a href="/support">Report here</a> <br> <small>${err.path}</small>` });
+    console.log(err);
 });
 
 app.listen(process.env.PORT || 80, function () {

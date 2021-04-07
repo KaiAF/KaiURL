@@ -1,0 +1,12 @@
+Fixed /i/:image/embed doing error code 500 when there was no error.
+Changed avatar URLs to just the user id.
+Added a table.css and tableDark.css file.
+Fixed Images not loading.
+Added a page where it shows all users with the same name. <a href="/user/dupe">For example.</a> (People that are verified get's to bypass this.)
+Fixed where "<a href="/account/files">/account/files</a>" was not loading when there was no file found.
+Added Verified role.
+Added Bug Hunter role.
+Added Moderator role.
+Added Administrator role.
+Added Owner role.
+Removed manifest.webmanifest.

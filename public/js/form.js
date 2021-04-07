@@ -109,6 +109,48 @@ $("#form-shrink-private").submit(function(event, type) {
     shrink(formData, true, getCookie('token'), getCookie('auth_key'));
 });
 
+$("#form-url-remove").submit(function(e) {
+    e.preventDefault();
+    const formData = new URLSearchParams(new FormData(this));
+    fetch(`/api/remove`, {
+        method: 'post',
+        body: formData
+    }).then((r) => r.json()).then((b) => {
+        if (b.OK == true) {
+            window.location.reload(1);
+        } else {
+            var g = document.getElementById('error');
+            if (g.innerText) {
+                g.innerText = "";
+                g.append(b.error || b.message);
+            } else {
+                return g.append(b.error || b.message);
+            }
+        }
+    });
+});
+
+$("#form-url-add").submit(function(e) {
+    e.preventDefault();
+    const formData = new URLSearchParams(new FormData(this));
+    fetch(`/api/add`, {
+        method: 'post',
+        body: formData
+    }).then((r) => r.json()).then((b) => {
+        if (b.OK == true) {
+            window.location.reload(1);
+        } else {
+            var g = document.getElementById('error');
+            if (g.innerText) {
+                g.innerText = "";
+                g.append(b.error || b.message);
+            } else {
+                return g.append(b.error || b.message);
+            }
+        }
+    });
+});
+
 // Changelog
 
 $('#form-changelogNew').submit(function(event, type) {

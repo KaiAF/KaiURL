@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%- include('../meta/index', { page: "Admin Edit '" + user.user + "'", url: "account/aEdit/" + user.userid }); %>
 </head>
-<body>
+<body onload="onOptionChange()">
     <div id="sideBar" class="sidebar">
         <%- include('../header/index', { page: "/account/aEdit/" + user.userid, pageName: "Home" }) %>
     </div>
@@ -14,15 +14,56 @@
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
-        <div class="main">
-            <% if (user.perms == "ADMIN") { %>
-                <p>Can't see other Admins information..</p>
-            <% } else { %>
-                Username: <%- user.user %><br>
-                Id: <%- user.userid %><br>
-                Email: <%- dEmail(user.email) %><br>
-            <% } %>
+        <div class="main"><% if (user.perms == "OWNER") { %>
+            <p>Can't see other Admins information..</p><% } else { %>
+            <center><% let perms; if (user.perms == null) {perms = "Member"} else { perms = user.perms }; %>
+                <div class="center-container">
+                    Username: <%- user.user %><br>
+                    Id: <%- user.userid %><br><% if (user.perms !== "ADMIN") { %>
+                    Email: <%- dEmail(user.email) %><br><% } %>
+                    Permissions: <%- perms %><br>
+                    Join Date: <%- user.joinDate.toUTCString() %>
+                <br><% if (user.perms !== "ADMIN" || user.perms !== "OWNER") { %>
+                    <form action="/account/edit/<%-user.userid %>/change" method="post" id="form-change-user" class="form">
+                        <select name="option" class="form-input" onchange="onOptionChange()">
+                            <option value="username" class="form-input">Change Username</option>
+                            <option value="email" class="form-input">Change Email</option>
+                            <option value="perms" class="form-input">Change Permission</option>  
+                        </select>
+                        <br> <br>       
+                        <input style="display: none;" type="text" name="changeUsername" id="changeUsername" class="form-input" placeholder="Change Username" spellcheck="false" autocomplete="off">
+                        <input style="display: none;" type="text" name="changeEmail" id="changeEmail" class="form-input" placeholder="Change Email" spellcheck="false" autocomplete="off">
+                        <select class="form-input" name="changePerms" id="changePerms" style="display: none;">
+                            <option value="member">Member</option>
+                            <option value="bug-hunter">Bug Hunter</option>
+                            <option value="mod">Moderator</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <br>
+                        <button class="form-button">Change</button>
+                    </form><% } %>
+                </div>
+            </center><% } %>
         </div>
     </div>
 </body>
-</html>
+</html><% if (u.perms === "ADMIN") { %>
+<script defer>
+    function onOptionChange() {
+        let form = document.forms["form-change-user"];
+        let options = form.option.value;
+        if (options == "username") {
+            document.getElementById("changeEmail").style.display = 'none';
+            document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("changeUsername").style.display = 'inline-block';
+        } else if (options == "email") {
+            document.getElementById("changeUsername").style.display = 'none';
+            document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("changeEmail").style.display = 'inline-block';
+        } else if (options == "perms") {
+            document.getElementById("changeUsername").style.display = 'none';
+            document.getElementById("changeEmail").style.display = 'none';
+            document.getElementById("changePerms").style.display = 'inline-block';
+        }
+    }
+</script><% } %>

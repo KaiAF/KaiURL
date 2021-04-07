@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <%- include('../meta/index', { page: "Edit Images", url: "account/edit" }); %>
+    <%- include('../meta/index', { page: "Edit Images", url: "account/files" }); %>
 </head>
 <body>
     <div id="sideBar" class="sidebar">
-        <%- include('../header/index', { page: "/account/images", pageName: "Account" }) %>
+        <%- include('../header/index', { page: "/account/files", pageName: "Account" }) %>
     </div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
-        <div class="main">
+        <div class="main"><% if (img) { %>
         <center>
         <table id="container">
             <tr><th>Files</th><th>Edit</th></tr>
@@ -32,7 +32,12 @@
                 </tbody>
             <% }); %>
         </table>
-        </center>
+        </center><% } else { %>
+        <center>
+            <div class="center-container">
+                <p>You do not have any files!</p>
+            </div>
+        </center><% } %>
         </div>
     </div>
 </body>

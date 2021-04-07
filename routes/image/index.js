@@ -4,6 +4,7 @@ const multer = require('multer');
 const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
+const { checkPerm } = require('../permissions');
 require('dotenv').config();
 
 var url = process.env.MONGODB;
@@ -14,14 +15,12 @@ const fetch = require('node-fetch');
 const config = require('../config.json');
 
 async function checkfName(req, file) {
-    let findapiKey = await apiKey.findOne({ key: req.query.apiKey });
-    let findUser = await user.findOne({ userid: findapiKey.user });
     if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
-        return `${file.originalname.replace('.png', '')}(${findUser.user}).png`;;
+        return `${file.originalname.replace('.png', '')}.png`;;
     } else if (file.mimetype === "text/plain") {
-        return `${file.originalname.replace('.txt', '')}(${findUser.user}).txt`;;
+        return `${file.originalname.replace('.txt', '')}.txt`;;
     } else if (file.mimetype === "image/gif") {
-        return `${file.originalname.replace('.gif', '')}(${findUser.user}).gif`;;
+        return `${file.originalname.replace('.gif', '')}.gif`;;
     }
 }
 
@@ -84,13 +83,15 @@ a.get('/admin', async function (req, res) {
     if (!theme) theme = null;
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
     if (!checkUser) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
-    if (checkUser.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     await gfs.files.find({}).sort({ uploadDate: -1 }).toArray((e, files) => {
-        if (!files || files.length === 0) return console.log('error');
         let a = [];
-        files.map(f => {
-            a.push(f);
-        });
+        if (!files || files.length === 0) a = null;
+        if (files || files.length > 0) {
+            files.map(f => {
+                a.push(f);
+            });
+        }
         res.render('./image/all', { theme: theme, u: checkUser, img: a });
     }); 
 });
@@ -100,7 +101,7 @@ a.get('/:fileName/admin', async function (req, res) {
     if (!theme) theme = null;
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
     if (!checkUser) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null });
-    if (checkUser.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null });
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
     if (!findImages) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null });
 
@@ -109,7 +110,7 @@ a.get('/:fileName/admin', async function (req, res) {
 
 a.post('/:fileName/delete', async function (req, res) {
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || checkUser.perms !== "ADMIN") return res.status(403).json({ OK: false, error: `You do not have access to this page.` });
+    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
     if (findImages) {
         await gfs.files.updateOne({ filename: req.params.fileName }, { $set: { removed: true } }).then(() => { res.redirect('/i/' + req.params.fileName + '/admin'); });
@@ -118,7 +119,7 @@ a.post('/:fileName/delete', async function (req, res) {
 
 a.post('/:fileName/delete/admin', async function (req, res) {
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || checkUser.role !== "Owner") return res.status(403).json({ OK: false, error: `You do not have access to this page.` });
+    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
     if (findImages) {
         await gfs.db.collection('Images.chunks').deleteMany({ files_id: findImages._id }).then(async () => {
@@ -133,7 +134,7 @@ a.post('/:fileName/delete/admin', async function (req, res) {
 
 a.post('/:fileName/add', async function (req, res) {
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || checkUser.perms !== "ADMIN") return res.status(403).json({ OK: false, error: `You do not have access to this page.` });
+    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
     if (findImages) {
         await gfs.files.updateOne({ filename: req.params.fileName }, { $set: { removed: false } }).then(() => { res.redirect('/i/' + req.params.fileName + '/admin'); });
@@ -165,11 +166,11 @@ a.get('/:fileName/embed', async function (req, res) {
     if (findUser == null) findUser = null;
     await gfs.files.findOne({ filename: name }, (err, file) => {
         if (err) return console.log(err);
-        if (!file || file.length === 0) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.` })
+        if (!file || file.length === 0) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
         if (findUser) {
-            if (file.removed == true && findUser.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.` })
+            if (file.removed == true && findUser.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
         } else {
-            if (file.removed == true) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.` })
+            if (file.removed == true) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
         }
         const readstream = gridFSBucket.openDownloadStream(file._id);
         return readstream.pipe(res);

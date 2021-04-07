@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: `There are currently '${number}' users with this name!`, url: 'user/' + user[0].user }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/user/" + user[0].user, pageName: "Home" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+        <center>
+            <div class="center-container">
+                <h3>There are currently '<%- number %>' users with this name!</h3>
+                <p>Choose the user you want to see</p>
+                <% let i; %>
+                <% for (i = 0; i < user.length; i++) { %>
+                    <span class="button"><a href="/user/<%- user[i].userid %>"><%- user[i].user %> (<%- [i + 1] %>)</a></span>
+                <% } %>
+            </div>
+        </div>
+    </center>
+    </div>
+</body>
+</html>

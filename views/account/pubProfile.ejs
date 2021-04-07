@@ -1,33 +1,35 @@
+<% let verified; %>
+<% let admin; %>
+<% let owner; %>
+<% let bFix; %>
+<% if (user.perms == "ADMIN") admin = "Admin"; %>
+<% if (user.perms == "OWNER") owner = "Owner"; %>
+<% if (user.perms == "BUG-HUNTER") bFix = "Bug Hunter"; %>
+<% if (user.perms !== "ADMIN") admin = ""; %>
+<% if (user.perms !== "OWNER") owner = ""; %>
+<% if (user.perms !== "BUG-HUNTER") bFix = ""; %>
+<% if (user.role == "Verified") verified = " ✔" %>
+<% if (user.role !== "Verified") verified = "" %>
+<%
+    name = user.user;
+    let Cname = user.user.toUpperCase();
+    let i;
+    let result;
+        for (i = 0; i < Name.name.length; i++) {
+            if (Name.name[i] == Cname) result = true
+        }
+    if (result == true) name = "Blocked Name."
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <% let verified; %>
-    <% let admin; %>
-    <% let owner; %>
-    <% let bFix; %>
-    <% if (user.role == "Verified") verified = " ✔" %>
-    <% if (user.role !== "Verified") verified = "" %>
-    <% if (user.role == "Admin") admin = "Admin"; %>
-    <% if (user.role == "Owner") owner = "Owner"; %>
-    <% if (user.role == "BugFix") bFix = "Bug Hunter"; %>
-    <% if (user.role !== "Admin") admin = ""; %>
-    <% if (user.role !== "Owner") owner = ""; %>
-    <% if (user.role !== "BugFix") bFix = ""; %>
-
-    <%
-        name = user.user;
-        let Cname = user.user.toUpperCase();
-        let i;
-        let result;
-            for (i = 0; i < Name.name.length; i++) {
-                if (Name.name[i] == Cname) result = true
-            }
-        if (result == true) name = "Blocked Name."
-    %>
-    <%- include('../meta/index', { page: name + verified, url: `user/${user.user}` }); %>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><% if (owner) { %>
+    <%- include('../meta/index', { page: name + " ✔ (Owner)", url: `user/${user.user}` }); %><% } else if (admin) { %>
+    <%- include('../meta/index', { page: name + " ✔ (Admin)", url: `user/${user.user}` }); %><% } else if (bFix) { %>
+    <%- include('../meta/index', { page: name + " ✔ (Bug Hunter)", url: `user/${user.user}` }); %><% } else { %>
+    <%- include('../meta/index', { page: name + verified, url: `user/${user.user}` }); %><% } %>
 </head>
 <body>
     <div id="sideBar" class="sidebar">
@@ -55,6 +57,8 @@
             <% if (image) { %>
             <% if (image.filename === `${user.userid}-${user._id}.png`) { %>
                 <img src="/avatar/<%= user.userid %>-<%= user._id %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;">
+            <% } else if (image.filename === `${user.userid}.png`) { %>
+                <img src="/avatar/<%= user.userid %>.png" alt="Profile picture" width="120px" height="120px" style="border-radius: 50%;">
             <% }} %>
             <h2 class="bold"><%= name %></h2>
             <% if (user.description) { %>

@@ -6,13 +6,15 @@ const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+const user = require('../db/user');
+
 var url = process.env.MONGODB;
 
-const storage = new gridFS({ url, file: (req, file) => {
+const storage = new gridFS({ url, options: {useUnifiedTopology: true}, file: (req, file) => {
         if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
             return {
                 bucketName: 'kaiurlImages',
-                filename: `${req.cookies.token}-${req.cookies.auth}.png`
+                filename: `Image.png`
             };
         } else {
             return null;
@@ -33,7 +35,6 @@ let gridFSBucket;
 const conn = mongoose.createConnection(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true,
     useFindAndModify: false
 });
 conn.once('open', async function() {
@@ -49,22 +50,34 @@ a.get('/', (req, res) => {
     });
 });
 
-a.post('/', upload.single('Image'), function (req, res) {
-    res.redirect('/account/edit');
+a.post('/', upload.single('Image'), async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    if (!req.cookies.auth) return res.redirect('/login?redirect=/account/edit');
+    if (!req.cookies.auth_key) return res.redirect('/login?redirect=/account/edit');
+    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
+    if (!checkUser) return res.status(500).render('./error/index', { theme: theme, errorMessage: `Could not find user!`, u: null });
+    if (!req.file) return res.status(500).render('./error/index', { theme: theme, errorMessage: `Could not find file!`, u: checkUser });
+    await gfs.files.findOne({ _id: req.file.id }, async function (e, r) {
+        if (e) return res.status(500).render('./error/index', { theme: theme, errorMessage: e, u: checkUser });
+        if (r == null) res.redirect('/account/edit');
+        if (r) {
+            await gfs.files.updateOne({ _id: r._id }, { $set: { filename: `${checkUser.userid}.png`, user: checkUser.userid } }).then(() => {
+                res.redirect('/account/edit');
+            });
+        };
+    });
 });
 
 a.post('/delete', async function (req, res) {
     if (req.cookies.token && req.cookies.auth) {
-        let name = `${req.cookies.token}-${req.cookies.auth}.png`
-        await gfs.files.findOne({ filename: name }, async (err, re) => {
-            if (err) return res.send(err);
-            if (re == null) return res.send("Could not find file");
-            if (re) {
-                await gfs.files.deleteOne({ _id: re._id }).then(() => {
-                    res.redirect('/account/edit');
-                });
-            };
-        });
+        let Image = await gfs.files.findOne({ filename: `${req.cookies.token}.png`, user: req.cookies.token }) || await gfs.files.findOne({ filename: `${req.cookies.token}-${req.cookies.auth}.png` });
+        if (!Image) return res.status(404).send('Could not find file!');
+        await gfs.db.collection('kaiurlImages.chunks').deleteMany({ files_id: Image._id }).then(async () => {
+            await gfs.files.deleteOne({ _id: Image._id }).then(() => {
+                res.redirect('/account/edit');
+            }).catch(e => { res.status(500).send(e) });
+        }).catch(e => { res.status(500).send(e) });
     } else {
         res.redirect('/login');
     };

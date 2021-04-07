@@ -44,11 +44,12 @@
     <meta property="twitter:image" content="https://www.kaiurl.xyz/icon.ico">
     <meta name="theme-color" content="#28a745">
     <% } %> 
-    <!-- CSS -->
-    <% if (theme) { if (theme == 'dark') { %>
+    <!-- CSS --><% if (theme) { if (theme == 'dark') { %>
     <link rel="stylesheet" href="/css/style.css"> <% } else { %>
     <link rel="stylesheet" href="/css/index.css"> <% }} else { %>
-    <link rel="stylesheet" href="/css/index.css"> <% } %>
+    <link rel="stylesheet" href="/css/index.css"> <% } if (url == "u" || url == "i/admin" || url == "kaipaste/admin" || url == "account" || url == "account/files") { %>
+    <% if (theme && theme == "dark") { %><link rel="stylesheet" href="/css/tableDark.css"><% } else { %><link rel="stylesheet" href="/css/table.css"><% }} %>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
     <script defer src="/js/nav.js"></script>

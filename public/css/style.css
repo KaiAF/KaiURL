@@ -220,38 +220,6 @@ body {
     min-height: 25%;
   }
 
-  #container {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    border-collapse: collapse;
-    width: 50%;
-    height: auto;
-    font-size: 80%;
-  }
-
-  #container td,
-  #container tr {
-    border: 1px solid black;
-    padding: 2px;
-    text-align: center;
-    background-color: rgb(26, 25, 25);
-  }
-
-  #container th {
-    padding-top: 4px;
-    padding-bottom: 5px;
-    text-align: center;
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  div.u {
-    padding-top: 5px;
-  }
-
-  #container a {
-    color: green;
-  }
-
   .right-container {
     background-color: #4b4b4b;
     color: white;
@@ -281,28 +249,6 @@ body {
     max-height: 65%;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.35), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
   }
-}
-
-#container {
-  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-  border-collapse: collapse;
-  width: 60%;
-}
-
-#container td,
-#container tr {
-  border: 1px solid black;
-  padding: 8px;
-  text-align: center;
-  background-color: rgb(26, 25, 25);
-}
-
-#container th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: center;
-  background-color: #4CAF50;
-  color: white;
 }
 
 a {
@@ -376,4 +322,39 @@ a.button {
   min-width: 20%;
   word-wrap: break-word;
   font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New;
+}
+
+span.button a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 600;
+  font-size: 1em;
+  padding: 5px 12px;
+  margin: 10px 0;
+
+  color: #ffffff;
+  background: #14b64a;
+  border: 1px solid #0fa942;
+  border-radius: 3px;
+
+  cursor: pointer;
+  outline: none;
+
+  text-decoration: none;
+}
+
+span.button a:hover {
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 600;
+  font-size: 1em;
+  padding: 5px 12px;
+  margin: 10px 0;
+
+  color: #ffffff;
+  background: #11963d;
+  border: 1px solid #0d7c32;
+  border-radius: 3px;
+  transition: 0.2s;
+
+  cursor: pointer;
+  outline: none;
 }

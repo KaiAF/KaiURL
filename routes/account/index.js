@@ -1,6 +1,7 @@
 const a = require('express').Router();
 const crypto = require('crypto-js');
 const { checkName } = require('../nameProtections');
+const { checkPerm } = require('../permissions');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const atob = require('atob');
@@ -16,7 +17,7 @@ var url = process.env.MONGODB;
 let gfs;
 let gfs2;
 let gridFSBucket;
-const conn = mongoose.createConnection(url, {
+const conn = mongoose.createConnection(process.env.MONGODB, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -59,14 +60,9 @@ a.get('/edit', async function (req, res) {
     if (!theme) theme = null;
     if (userid && username) {
         let check_user = await user.findOne({ userid: userid, user: username });
-        if (check_user == null) {
-            res.clearCookie("token");
-            res.clearCookie("userName");
-            res.redirect('/');
-        } else {
-            let image = await gfs.files.findOne({ filename: `${check_user.userid}-${check_user._id}.png` });
-            res.render('./account/edit', { u: check_user, log: true, theme: theme, image: image, errorMessage: null });
-        };
+        if (!check_user) return res.redirect('/logout');
+        let image = await gfs2.files.findOne({ filename: `${check_user.userid}-${check_user._id}.png` }) || await gfs2.files.findOne({ filename: `${check_user.userid}.png` });
+        res.render('./account/edit', { u: check_user, log: true, theme: theme, image: image, errorMessage: null });
     } else {
         res.redirect('/login?redirect=/account/edit');
     };
@@ -132,11 +128,13 @@ a.get('/files', async function (req, res) {
     if (!checkUser) return res.redirect('/login?redirect=/account/files');
 
     await gfs.files.find({user: checkUser._id}).sort({ uploadDate: -1 }).toArray((e, files) => {
-        if (!files || files.length === 0) return console.log('error');
         let a = [];
-        files.map(f => {
-            a.push(f);
-        })
+        if (!files || files.length === 0) a = null;
+        if (files || files.length > 0) {
+            files.map(f => {
+                a.push(f);
+            });
+        }
         res.render('./account/img', { theme: theme, u: checkUser, img: a });
     });
 });
@@ -165,11 +163,74 @@ a.get('/edit/:id', async function (req, res) {
     let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
     let aUser = await user.findOne({ userid: req.params.id });
 
-    if (checkUser == null) return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme });
-    if (checkUser.perms !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme });
-    if (aUser == null) return res.status(404).render('./error/index', { errorMessage: 'Could not find user.', theme: theme });
+    if (checkUser == null) return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: null });
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (aUser == null) return res.status(404).render('./error/index', { errorMessage: 'Could not find user.', theme: theme, u: checkUser });
 
     res.render('./account/adminEdit', { theme: theme, u: checkUser, user: aUser, dEmail: atob });
+});
+
+a.post('/edit/:id/change', async function (req, res) {
+    let theme = req.cookies.Theme;
+    if (!theme) theme = null;
+    let auth = req.cookies.auth;
+    let auth_key = req.cookies.auth_key;
+    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    let aUser = await user.findOne({ userid: req.params.id });
+
+    if (checkUser == null) return res.status(404).json({ OK: false, error: `You do not have access to this page.` });
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (aUser == null) return res.status(404).json({ OK: false, error: `Could not find user.` });
+
+    let option = req.body.option;
+
+    if (option.toUpperCase() == "USERNAME") {
+        if (!req.body.changeUsername) return res.status(404).json({ OK: false, error: `You need to fill in the form.` });
+        await user.findOne({ officialName: req.body.changeUsername.toUpperCase() }, async function (e, r) {
+            if (e) return res.status(500).json({ OK: false, error: e });
+            if (r) return res.json({ OK: false, error: `Username already exist!` });
+            await user.updateOne({ _id: aUser._id }, { $set: { officialName: req.body.changeUsername.toUpperCase(), user: req.body.changeUsername } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        });
+    } else if (option.toUpperCase() == "EMAIL") {
+        if (!req.body.changeEmail) return res.status(404).json({ OK: false, error: `You need to fill in the form.` });
+        await user.findOne({ officialEmail: btoa(req.body.changeEmail.toUpperCase()) }, async function (e, r) {
+            if (e) return res.status(500).json({ OK: false, error: e });
+            if (r) return res.json({ OK: false, error: `Email already exist!` });
+            await user.updateOne({ _id: aUser._id }, { $set: { officialEmail: btoa(req.body.changeEmail.toUpperCase()), email: btoa(req.body.changeEmail) } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        });
+    } else if (option.toUpperCase() == "PERMS") {
+        if (req.body.changePerms.toUpperCase() == "MEMBER") return changeMember();
+        if (req.body.changePerms.toUpperCase() == "BUG-HUNTER") return changeBugHunter();
+        if (req.body.changePerms.toUpperCase() == "MOD") return changeMod();
+        if (req.body.changePerms.toUpperCase() == "ADMIN") return changeAdmin();
+
+        async function changeMember() {
+            await user.updateOne({ _id: aUser._id }, { $set: { perms: null } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        };
+        async function changeBugHunter() {
+            await user.updateOne({ _id: aUser._id }, { $set: { perms: "BUG-HUNTER" } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        }
+        async function changeMod() {
+            await user.updateOne({ _id: aUser._id }, { $set: { perms: "MOD" } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        }
+        async function changeAdmin() {
+            await user.updateOne({ _id: aUser._id }, { $set: { perms: "ADMIN" } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        }
+        
+    }
+    
 });
 
 async function changeUsername(req, res, nickName, userid, AU) {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <%- include('../meta/index', { page: 'KaiURL Image hosting', url: 'i' }); %>
+    <%- include('../meta/index', { page: 'KaiURL Image hosting', url: 'i/admin' }); %>
 </head>
 <body>
     <div id="sideBar" class="sidebar">
@@ -15,11 +15,21 @@
     </div>
     <div class="container">
         <div class="main">
-            <% if (img) { %>
-                <% img.forEach(e => { %>
-                    <a href="/i/<%- e.filename %>/admin"><%- e.filename %></a> <br><br>
-                <% }); %>
-            <% } %>
+        <center>
+            <table id="container">
+                <tbody>
+                <% if (img) { %>
+                    <% img.forEach(e => { %>
+                        <tr>
+                            <td>
+                                <a href="/i/<%- e.filename %>/admin"><%- e.filename %></a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+                </tbody>
+            </table>
+        </center>
         </div>
     </div>
 </body>

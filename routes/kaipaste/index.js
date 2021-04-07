@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const crypto = require('crypto-js');
+const { checkPerm } = require('../permissions');
 
 const text = require('../db/kaipaste');
 const user = require('../db/user');
@@ -40,7 +41,7 @@ a.get('/admin', async function (req, res) {
     let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
     let kP = await text.find();
     if (!check_user) return res.redirect('/');
-    if (check_user.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `You need to be an admin to view this page.` });
+    if (await checkPerm(check_user.userid) !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `You need to be an admin to view this page.`, u: check_user });
     res.render('./kaipaste/admin/index', { theme: theme, u: check_user, paste: kP });
 });
 

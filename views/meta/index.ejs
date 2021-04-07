@@ -13,20 +13,15 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.kaiurl.xyz/<%= url %>">
     <meta property="og:title" content="<%= page %>">
-    <meta property="og:description" content="<%= user.description %>">
-    <% if (image) { %>
-    <meta property="og:image" content="https://www.kaiurl.xyz/img/<%= user.userid %>-<%= user._id %>.png">
-    <% } %> 
+    <meta property="og:description" content="<%= user.description %>"><% if (image) { %>
+    <meta property="og:image" content="https://www.kaiurl.xyz/avatar/<%= user.userid %>.png"><% } %> 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://www.kaiurl.xyz/<%= url %>">
     <meta property="twitter:title" content="<%= page %>">
-    <meta property="twitter:description" content="<%= user.description %>">
-    <% if (image) { %>
-    <meta property="twitter:image" content="https://www.kaiurl.xyz/img/<%= user.userid %>-<%= user._id %>.png">
-    <% } %>
-    <meta name="theme-color" content="#28a745">
-    <% } else { %>
+    <meta property="twitter:description" content="<%= user.description %>"><% if (image) { %>
+    <meta property="twitter:image" content="https://www.kaiurl.xyz/avatar/<%= user.userid %>.png"><% } %>
+    <meta name="theme-color" content="#28a745"><% } else { %>
     <meta name="description" content="KaiURL is a website that allows you to shrink urls, which are uploaded to a database and seen publicly. For more information, check out our About page!">
     <meta name="author" content="Iris Zol">
     <meta name="keywords" content="Kai, KaiURL, .xyz, express, shortUrl, urlShort, shrinkURL, open-source, open source, MIT License, github"> 

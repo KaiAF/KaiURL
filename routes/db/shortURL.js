@@ -19,7 +19,7 @@ const shorturlSchema = new mongoose.Schema({
     }
 });
 
-if (config.Url === "http://localhost") {
+if (config.Url === "https://beta.kaiurl.xyz") {
     module.exports = mongoose.model('new_shorturl', shorturlSchema);
 } else {
     module.exports = mongoose.model('shorturl', shorturlSchema);

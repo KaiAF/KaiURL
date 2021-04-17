@@ -5,6 +5,7 @@ const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const { checkPerm } = require('../permissions');
+const { error404 } = require('../errorPage');
 require('dotenv').config();
 
 var url = process.env.MONGODB;
@@ -82,8 +83,8 @@ a.get('/admin', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (!checkUser) return error404(req, res);
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
     await gfs.files.find({}).sort({ uploadDate: -1 }).toArray((e, files) => {
         let a = [];
         if (!files || files.length === 0) a = null;
@@ -100,10 +101,10 @@ a.get('/:fileName/admin', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null });
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (!checkUser) return error404(req, res);
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
-    if (!findImages) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null });
+    if (!findImages) return error404(req, res);
 
     res.render('./image/admin.ejs', { theme: theme, u: checkUser, image: findImages })
 });
@@ -134,7 +135,7 @@ a.post('/:fileName/delete/admin', async function (req, res) {
 
 a.post('/:fileName/add', async function (req, res) {
     let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
     let findImages = await gfs.files.findOne({ filename: req.params.fileName });
     if (findImages) {
         await gfs.files.updateOne({ filename: req.params.fileName }, { $set: { removed: false } }).then(() => { res.redirect('/i/' + req.params.fileName + '/admin'); });
@@ -166,11 +167,11 @@ a.get('/:fileName/embed', async function (req, res) {
     if (findUser == null) findUser = null;
     await gfs.files.findOne({ filename: name }, (err, file) => {
         if (err) return console.log(err);
-        if (!file || file.length === 0) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
+        if (!file || file.length === 0) return error404(req, res);
         if (findUser) {
-            if (file.removed == true && findUser.perms !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
+            if (file.removed == true && findUser.perms !== "ADMIN") return error404(req, res);
         } else {
-            if (file.removed == true) return res.status(404).render('./error/index', { theme: theme, errorMessage: `This page was not found.`, u: null })
+            if (file.removed == true) return error404(req, res);
         }
         const readstream = gridFSBucket.openDownloadStream(file._id);
         return readstream.pipe(res);
@@ -183,12 +184,12 @@ a.get('/:fileName', async function (req, res) {
     if (findUser == null) findUser = null;
     await gfs.files.findOne({ filename: name }, (err, file) => {
         if (err) return console.log(err);
-        if (!file || file.length === 0) return res.status(404).json({ OK: false, error: `Could not find file '${name}.'` });
+        if (!file || file.length === 0) return error404(req, res);
         if (findUser) {
-            if (file.removed == true && findUser.perms !== "ADMIN") return res.status(404).json({ OK: false, error: `Could not find file '${name}.'` });
+            if (file.removed == true && findUser.perms !== "ADMIN") return error404(req, res);
             if (file.removed == true && findUser.perms == "ADMIN") res.redirect(`/i/${file.filename}/admin`);
         } else {
-            if (file.removed == true) return res.status(404).json({ OK: false, error: `Could not find file '${name}.'` });
+            if (file.removed == true) return error404(req, res);
         }
         const readstream = gridFSBucket.openDownloadStream(file._id);
         return readstream.pipe(res);

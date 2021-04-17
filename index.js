@@ -11,6 +11,7 @@ const user = require('./routes/db/user');
 const pvurl = require('./routes/db/pUrl');
 const blockedName = require('./routes/db/blockedName');
 const config = require('./routes/config.json');
+const { error404 } = require('./routes/errorPage');
 
 console.clear();
 // Mongoose Database. You would need to configure your own Mongo URI.
@@ -39,6 +40,7 @@ app.use('/support', require('./routes/support/index')); // Bug reports.
 app.use('/changelog', require('./routes/changelog/index')); // Changelogs!
 app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
 app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
+//app.use('/discord', require('./routes/discord/index')); // Discord stuff.
 app.use(express.static('public')); // Public code. Like the script files.
 
 a.get('/', async function (req, res){
@@ -183,7 +185,7 @@ a.get('/:id', async function (req, res) {
     if (!theme) theme = null;
     await shorturl.findOne({ short: req.params.id }, async (err, re) => {
         if (err) return res.send(err);
-        if (re == null) return res.render('./error/index', { errorMessage: `Could not find the page you were looking for..`, u: null, log: false, theme: theme })
+        if (re == null) return error404(req, res);
         if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
         let Click = re.clicks;
         let uClick = ++Click;
@@ -199,10 +201,10 @@ a.get('/:Name/:id', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     let check_user = await user.findOne({ user: req.params.Name });
-    if (check_user == null) return res.render('./error/index', { errorMessage: `Could not find the page you were looking for..`, u: null, log: false, theme: theme })
+    if (check_user == null) return error404(req, res);
     await pvurl.findOne({ short: req.params.id, userID: check_user.userid }, async (err, re) => {
         if (err) return res.send(err);
-        if (re == null) return res.render('./error/index', { errorMessage: `Could not find the page you were looking for..`, u: null, log: false, theme: theme })
+        if (re == null) return error404(req, res);
         if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
         let Click = re.clicks;
         let uClick = ++Click;
@@ -222,9 +224,7 @@ function clearCookie(req, res, next) {
 };
 
 a.use(function (req, res, next) {
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null;
-    res.status(404).render('./error/index', { errorMessage: `This page was not found.`, u: null, theme: theme });
+    error404(req, res);
 });
 
 app.use('/', a);

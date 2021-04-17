@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const time = require('timeago.js');
+const { error404 } = require('../errorPage');
 
 const user = require('../db/user');
 

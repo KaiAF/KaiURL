@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const config = require('../config.json');
 
 const shorturlSchema = new mongoose.Schema({
     full: String,
@@ -18,4 +19,8 @@ const shorturlSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('shorturl', shorturlSchema);
+if (config.Url === "http://localhost") {
+    module.exports = mongoose.model('new_shorturl', shorturlSchema);
+} else {
+    module.exports = mongoose.model('shorturl', shorturlSchema);
+}

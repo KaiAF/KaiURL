@@ -11,6 +11,7 @@ const env = require('dotenv').config();
 const fetch = require('node-fetch');
 const nodemailer = require('nodemailer');
 const { checkName } = require('../nameProtections');
+const { error404 } = require('../errorPage');
 
 const user = require('../db/user');
 const shortURL = require('../db/shortURL');

@@ -12,6 +12,7 @@ const pvurl = require('../db/pUrl');
 const text = require('../db/kaipaste');
 const blockedName = require('../db/blockedName');
 const apiKey = require('../db/apiKey');
+const { error404 } = require('../errorPage');
 
 var url = process.env.MONGODB;
 let gfs;
@@ -210,6 +211,7 @@ a.post('/edit/:id/change', async function (req, res) {
         if (req.body.changePerms.toUpperCase() == "BUG-HUNTER") return changeBugHunter();
         if (req.body.changePerms.toUpperCase() == "MOD") return changeMod();
         if (req.body.changePerms.toUpperCase() == "ADMIN") return changeAdmin();
+        if (req.body.changePerms.toUpperCase() == "VERIFIED") return changeVerified();
 
         async function changeMember() {
             await user.updateOne({ _id: aUser._id }, { $set: { perms: null } }).then(() => {
@@ -231,6 +233,11 @@ a.post('/edit/:id/change', async function (req, res) {
                 res.redirect(`/account/edit/${aUser.userid}`);
             });
         }
+        async function changeVerified() {
+            await user.updateOne({ _id: aUser._id }, { $set: { perms: "VERIFIED" } }).then(() => {
+                res.redirect(`/account/edit/${aUser.userid}`);
+            });
+        };
         
     }
     

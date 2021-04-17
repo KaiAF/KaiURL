@@ -1,6 +1,7 @@
 const a = require('express').Router();
 const date = require('timeago.js');
 const { checkPerm } = require('../permissions');
+const { error404 } = require('../errorPage');
 
 const user = require('../db/user');
 const changelog = require('../db/changelog');
@@ -22,8 +23,8 @@ a.get('/new', async function (req, res) {
     let auth = req.cookies.auth;
     let auth_key = req.cookies.auth_key;
     let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
-    if (checkUser == null) return res.status(403).send('You do not have access to this page')
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (checkUser == null) return error404(req, res);
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
     res.render('./changelog/new', { theme: theme, u: checkUser });
 });
 
@@ -33,7 +34,7 @@ a.post('/new', async function (req, res) {
     let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
     
     if (checkUser == null) return res.status(403).json({ "OK": false, error: `Only admins can access this.` });
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
+    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
 
     let vName = req.body.version;
     let title = req.body.title;
@@ -64,7 +65,7 @@ a.get('/:id', async function (req, res) {
     if (checkUser == null) checkUser = null
     await changelog.findOne({ Id: req.params.id }, async function (err, re) {
         if (err) return console.log(err);
-        if (re == null) return res.status(404).render('./error/index', { errorMessage: `Could not find the change log`, theme: theme });
+        if (re == null) return error404(req, res);
         if (re) return res.render('./changelog/change', { theme: theme, u: checkUser, c: re, d: date });
     });
 });

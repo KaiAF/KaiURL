@@ -1,6 +1,7 @@
 const a = require('express').Router();
 
 const user = require('../db/user');
+const { error404 } = require('../errorPage');
 
 a.get('/api/shrink', async function (req, res) {
     let theme = req.cookies.Theme;

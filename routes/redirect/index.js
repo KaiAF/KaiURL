@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const path = require('path');
+const { error404 } = require('../errorPage');
 
 const shorturl = require('../db/shortURL');
 const pvurl = require('../db/pUrl');

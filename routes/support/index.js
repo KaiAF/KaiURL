@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const fetch = require('node-fetch');
+const { error404 } = require('../errorPage');
 
 const user = require('../db/user');
 const bReport = require('../db/bug');
@@ -23,8 +24,8 @@ a.get('/admin', async function (req, res) {
     let auth = req.cookies.auth;
     let auth_key = req.cookies.auth_key;
     let check_user = await user.findOne({ _id: auth, userid: req.cookies.token, auth_key: auth_key });
-    if (check_user == null) return res.status(404).render('./error/index', { errorMessage: `You need to be an admin to view this page!`, theme: theme });
-    if (check_user.perms !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: `You need to be an admin to view this page!`, theme: theme });
+    if (check_user == null) return error404(req, res);
+    if (check_user.perms !== "ADMIN") return error404(req, res);
     let bug = await bReport.find();
     if (check_user) return res.render('./support/home/admin', { theme: theme, u: check_user, b: bug });
 });

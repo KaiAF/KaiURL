@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const user = require('../db/user');
+const { error404 } = require('../errorPage');
 
 var url = process.env.MONGODB;
 

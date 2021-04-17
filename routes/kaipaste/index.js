@@ -1,6 +1,7 @@
 const a = require('express').Router();
 const crypto = require('crypto-js');
 const { checkPerm } = require('../permissions');
+const { error404 } = require('../errorPage');
 
 const text = require('../db/kaipaste');
 const user = require('../db/user');
@@ -41,7 +42,7 @@ a.get('/admin', async function (req, res) {
     let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
     let kP = await text.find();
     if (!check_user) return res.redirect('/');
-    if (await checkPerm(check_user.userid) !== "ADMIN") return res.status(404).render('./error/index', { theme: theme, errorMessage: `You need to be an admin to view this page.`, u: check_user });
+    if (await checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
     res.render('./kaipaste/admin/index', { theme: theme, u: check_user, paste: kP });
 });
 
@@ -50,7 +51,7 @@ a.get('/:id', async function (req, res) {
     if (!theme) theme = null
     await text.findOne({ id: req.params.id }, async function (err, re) {
         if (err) return res.send(err);
-        if (re == null) return res.render('./error/index', { errorMessage: `Could not find URL`, u: null, log: false, theme: theme });
+        if (re == null) return error404(req, res);
         if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
         res.write(re.description);
         res.send();
@@ -62,7 +63,7 @@ a.get('/remove/:id', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     if (!check_user) return res.redirect('/');
-    if (check_user.userid !== "40922208590827513497") return res.status(404).render('./error/index', { theme: theme, errorMessage: `You need to be an admin to view this page.` });
+    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
     let kP = await text.findOne({ id: req.params.id });
     if (!kP) return res.status(404).render('./error/index', { theme: theme, errorMessage: `Could not find paste.` });
     res.render('./kaipaste/admin/remove', { theme: theme, u: check_user, paste: kP });
@@ -72,14 +73,14 @@ a.post('/remove', async function (req, res) {
     let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
-    if (!check_user) return res.status(404).json({ 'OK': false, error: `Auth failed.` });
-    if (check_user.userid !== "40922208590827513497") return res.status(404).json({ 'OK': false, error: `Auth failed.` });
+    if (!check_user) return error404(req, res);
+    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
     // ENC PASS:
     var parse_pass = crypto.enc.Utf8.parse(req.body.pass);
     var enc_pass = crypto.enc.Base64.stringify(parse_pass);
-    if (check_user.pass !== enc_pass) return res.status(404).json({ "OK": false, error: `Auth failed.` });
+    if (check_user.pass !== enc_pass) return error404(req, res);
     let kP = await text.findOne({ id: req.body.id });
-    if (!kP) return res.status(404).json({ 'OK': false, error: `Could not find paste.` });
+    if (!kP) return error404(req, res);
     if (kP.removed) return res.status(404).json({ 'OK': false, error: `Paste is already removed.` });
     await text.updateOne({ _id: kP._id }, { $set: { removed: true } }).then(() => {
         return res.json({ 'OK': true, message: `Removed paste.` });
@@ -91,7 +92,7 @@ a.get('/add/:id', async function (req, res) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     if (!check_user) return res.redirect('/');
-    if (check_user.userid !== "40922208590827513497") return res.status(404).render('./error/index', { theme: theme, errorMessage: `You need to be an admin to view this page.` });
+    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
     let kP = await text.findOne({ id: req.params.id });
     if (!kP) return res.status(404).render('./error/index', { theme: theme, errorMessage: `Could not find paste.` });
     res.render('./kaipaste/admin/add', { theme: theme, u: check_user, paste: kP });
@@ -101,8 +102,8 @@ a.post('/add', async function (req, res) {
     let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
-    if (!check_user) return res.status(404).json({ 'OK': false, error: `Auth failed.` });
-    if (check_user.userid !== "40922208590827513497") return res.status(404).json({ 'OK': false, error: `Auth failed.` });
+    if (!check_user) return error404(req, res);
+    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
     // ENC PASS:
     var parse_pass = crypto.enc.Utf8.parse(req.body.pass);
     var enc_pass = crypto.enc.Base64.stringify(parse_pass);
@@ -121,7 +122,7 @@ a.get('/:user/:id', async function (req, res) {
     if (!theme) theme = null;
     await text.findOne(findUser, async function (err, re) {
         if (err) return res.send(err);
-        if (re == null) return res.render('./error/index', { errorMessage: `Could not find URL`, u: null, log: false, theme: theme });
+        if (re == null) return error404(req, res);
         if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
         res.write(re.description);
         res.send();

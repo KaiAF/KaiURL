@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const blockedName = require('../db/blockedName');
 const user = require('../db/user');
 const pvurl = require('../db/pUrl');
+const { error404 } = require('../errorPage');
+const { checkPerm } = require('../permissions');
 
 const conn = mongoose.createConnection(process.env.MONGODB, {
     useNewUrlParser: true,
@@ -30,7 +32,7 @@ a.get('/:name', async function (req, res) {
     let checkLog = await user.findOne({ userid: userid, _id: id });
     if (!checkLog) checkLog = null;
     let findUser = await user.findOne({ officialName: req.params.name.toUpperCase() }) || await user.findOne({ userid: req.params.name });
-    if (!findUser) return res.status(404).render('./error/index', { theme: theme, errorMessage: `Could not find user.`, u: checkLog });
+    if (!findUser) return error404(req, res);
 
     let countUserName = await user.countDocuments({ officialName: req.params.name.toUpperCase() });
 
@@ -45,8 +47,14 @@ a.get('/:name', async function (req, res) {
         let findUser = await user.find({ officialName: req.params.name.toUpperCase() });
         return res.render('./account/pubProfile2', { u: checkLog, theme: theme, number: countUserName, image: Image, user: findUser });
     } else {
-        if (checkLog && checkLog.userid === findUser.userid) return res.render('./account/pubProfile', { u: checkLog, theme: theme, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image });
-        res.render('./account/pubProfile', { theme: theme, u: checkLog, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image });
+        let perms;
+        if (checkLog) {
+            perms = await checkPerm(checkLog.userid);
+        } else {
+            perms = null;
+        }
+        //if (checkLog && checkLog.userid === findUser.userid) return res.render('./account/pubProfile', { u: checkLog, theme: theme, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image });
+        res.render('./account/pubProfile', { theme: theme, u: checkLog, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image, checkPerm: perms });
     };
 });
 

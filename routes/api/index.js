@@ -23,6 +23,8 @@ let CLIENT_SECRET;
 
 if (config.Url == "http://localhost") CLIENT_ID = process.env.TEST_CLIENT_ID;
 if (config.Url == "http://localhost") CLIENT_SECRET = process.env.TEST_CLIENT_SECRET;
+if (config.Url == "https://beta.kaiurl.xyz") CLIENT_ID = process.env.TEST_CLIENT_ID;
+if (config.Url == "https://beta.kaiurl.xyz") CLIENT_SECRET = process.env.TEST_CLIENT_SECRET;
 if (config.Url == "https://www.kaiurl.xyz") CLIENT_ID = process.env.CLIENT_ID;
 if (config.Url == "https://www.kaiurl.xyz") CLIENT_SECRET = process.env.CLIENT_SECRET;
 const redirect = `${config.Url}/api/callback`;
@@ -235,7 +237,7 @@ a.get('/callback', async function (req, res) {
                  res.redirect("/account");
                 }).catch(err => res.send(err));
             };
-        });
+        }).catch(e => { res.send(`There was an error, contact an admin please! <a href="/support">Contact me here</a>. <br> ${e}`); console.log(e); });
 
     });
     function _encode(obj) {
@@ -252,6 +254,7 @@ a.get('/callback', async function (req, res) {
 // Discord Log in URL
 
 a.get('/login/discord', (req, res) => {
+  if (config.Url == "https://beta.kaiurl.xyz") return res.redirect(`https://www.kaiurl.xyz/api/login/discord`);
   if (config.Url == "http://localhost") return res.redirect(`${config.discord_Url_test}`);
   if (config.Url == "https://www.kaiurl.xyz") return res.redirect(`${config.discord_Url}`);
 });

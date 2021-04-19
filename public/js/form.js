@@ -169,7 +169,7 @@ $('#form-api').submit(function(e) {
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
         if (b.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
         if (b.debug == true && url == "http://localhost") url = "http://localhost:3000"
-        fetch(`${url}/url/key/generate`, {
+        fetch(`${url}/key/generate`, {
             method: 'POST',
             body: formData
         }).then((r) => r.json()).then((b) => {
@@ -240,7 +240,7 @@ function shrink(formData, type, auth, auth_key) {
         if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
         if (re.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
         if (re.debug == true && url == "http://localhost") url = "http://localhost:3000"
-        fetch(`${url}/url${a}`, {
+        fetch(`${url}${a}`, {
             method: 'post',
             body : formData,
             credentials: 'same-origin'

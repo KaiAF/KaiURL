@@ -168,7 +168,7 @@ $('#form-api').submit(function(e) {
         let url;
         if (b.Url == true) url = "https://www.kaiurl.xyz";
         if (b.Url == false) url = "http://localhost"
-        if (b.debug == false && b.Url == false) url = "https://api.kaiurl.xyz";
+        if (b.debug == false && b.Url == true) url = "https://api.kaiurl.xyz";
         if (b.debug == true && url == b.Url == false) url = "http://localhost:3000"
         fetch(`${url}/key/generate`, {
             method: 'POST',

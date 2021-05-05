@@ -43,7 +43,7 @@ $('#form-privacy-settings').submit(function (e) {
     const formData = new URLSearchParams(new FormData(this));
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((r) => {
         let url;
-        if (r.debug == false && r.Url == false) url = "https://api.kaiurl.xyz";
+        if (r.debug == false && r.Url == true) url = "https://api.kaiurl.xyz";
         if (r.debug == true && url == r.Url == false) url = "http://localhost:3000"
         fetch(`${url}/user/privacy?q=${getCookie('auth')}`, {
             method: 'post',

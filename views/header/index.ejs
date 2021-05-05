@@ -21,7 +21,7 @@
             const formData = new URLSearchParams(new FormData(this));
             fetch('/config.json', { method:'get' }).then((r) => r.json()).then((b) => {
                 let url;
-                if (b.debug == false && b.Url == false) url = "https://api.kaiurl.xyz";
+                if (b.debug == false && b.Url == true) url = "https://api.kaiurl.xyz";
                 if (b.debug == true && url == b.Url == false) url = "http://localhost:3000"
                 fetch(`${url}/user/theme?q=${getCookie('auth')}&theme=<% if (u.theme) { %><%-u.theme%><%}else{%>${getCookie('theme')}<%}%>`, {
                     method: 'post'

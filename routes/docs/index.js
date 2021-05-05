@@ -1,20 +1,15 @@
 const a = require('express').Router();
-const fetch = require('node-fetch');
 
 const user = require('../db/user');
 const { error404 } = require('../errorPage');
 
 a.get('/api/shrink', async function (req, res) {
-    let {theme, auth} = req.cookies;
+    let theme = req.cookies.Theme;
     if (!theme) theme = null;
-    if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        res.render('./docs/api/shrink', { u: findUser, theme: theme });
-    });
+    let auth = req.cookies.auth;
+    let checkUser = await user.findOne({ _id: auth, userid: req.cookies.token });
+    if (!checkUser) checkUser = null;
+    res.render('./docs/api/shrink', { theme: theme, u: checkUser });
 });
 
 module.exports = a;

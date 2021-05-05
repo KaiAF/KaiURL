@@ -40,7 +40,7 @@
     $("#form-bug-report").submit(function(event) {
         event.preventDefault();
         const formData = new URLSearchParams(new FormData(this));
-        fetch("/support/report/submit", {   
+        fetch("/support/report-bug/submit", {   
             method: 'POST',
             mode : 'same-origin',
             credentials: 'same-origin' ,
@@ -48,7 +48,7 @@
         }).then((r) => r.json()).then((b) => {
             let g = document.getElementById('message');
             if (b.OK == true) {
-                window.location.assign('/support/report/' + b.bugId);
+                window.location.assign('/support/report-bug/reportId/' + b.bugId);
             } else {
                 g.innerText = "";
                 g.innerText = "There was an error."

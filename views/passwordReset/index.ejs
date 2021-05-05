@@ -33,12 +33,12 @@
     </div>
 </body>
 </html>
-
+<script defer src="/js/form.js"></script>
 <script defer>
     $('#form').submit(function (e) {
         e.preventDefault();
         const formData = new URLSearchParams(new FormData(this));
-        fetch('/passwordReset', {
+        fetch('/api/passwordReset', {
             method: 'post',
             body : formData
         }).then((r) => r.json()).then((b) => {
@@ -46,10 +46,10 @@
             var g = document.getElementById('success');
             var email;
             var username;
-
+            console.log(b.OK)
             if (b.OK == false) {
                 er.innerText = ""
-                return er.innerText = b.error.message
+                return er.innerText = b.errorMessage
             } else {
                 g.innerText = ""
                 return g.innerText = "Sent password reset to your email."

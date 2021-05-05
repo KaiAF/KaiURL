@@ -45,7 +45,7 @@
             <center>
                 <div class="center-container">
                   <span class="button"><a href="/user/<%- u.userid %>">Public Profile.</a></span> <br> <br>
-                  <span class="button"><a href="/account/dashboard">API</a></span>
+                  <span class="button"><a href="/account/api/dashboard">API</a></span>
                   <span class="button"><a href="/account/files">Files</a></span><% if (u.perms == "ADMIN" || u.perms == "OWNER") { %>
                   <br> <br>
                   <span class="button"><a href="/kaipaste/admin">KaiPaste Admin</a></span>
@@ -103,7 +103,12 @@
                     <tr>
                       <th>Paste</th><th>Remove</th><th>Edit</th>
                     </tr>
-                    <tbody><% text.forEach(text => { %><% if (text.removed) { %><% return %><% } %>
+                    <tbody>
+                      <% text.forEach(text => { %>
+                        <% if (text.removed) { %>
+                          <% return %>
+                          <% } %>
+                          <% if (text.discordID === u.userID) { %>
                       <tr>
                         <td><a id="id" class="title" href="/kaipaste/<%= text.id %>" target="__blank" title="<%= text.title %>"><%= text.title %></a>
                         </td>
@@ -113,9 +118,13 @@
                           </form>
                         </td>
                         <td>
-                            <span class="button"><a href="/kaipaste/<%- text.id %>/edit">Edit <%-text.title%></a></span>
+                          <form method="POST" action="/kaipaste/<%=text.user %>/<%=text.id %>/edit">
+                            <button class="form-button" type="submit" name="edit" class="link-button">Edit <%= text.title %></button>
+                          </form>
                         </td>
-                      </tr><% }) %>
+                      </tr>
+                        <% } %>
+                      <% }) %>
                     </tbody>
                   </table>
             </div>
@@ -124,4 +133,4 @@
     </div>
 </body>
 </html>
-
+<script defer src="/js/form.js"></script>

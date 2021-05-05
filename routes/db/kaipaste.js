@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 
 const shorturlSchema = new mongoose.Schema({
-    user: String,
+    id: String,
     title: String,
     description: String,
-    removed: Boolean,
-    id: String,
-    date: Date
+    date: Date,
+    user: String,
+    userID: String,
+    removed: Boolean
 });
 
 module.exports = mongoose.model('texts', shorturlSchema);

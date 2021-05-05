@@ -1,4 +1,4 @@
-fetch('/api/auth/account', {
+fetch('/api/account', {
     method: "get"
 }).then(async (b) => {
     if (b.statusText === "OK") {

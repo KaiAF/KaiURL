@@ -4,7 +4,6 @@ const multer = require('multer');
 const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
-const fetch = require('node-fetch');
 require('dotenv').config();
 
 const user = require('../db/user');
@@ -46,66 +45,50 @@ conn.once('open', async function() {
     console.log('Got Avatars')
 });
 
-a.post('/', upload.single('Image'), async function (req, res) {
-    let {theme, auth} = req.cookies;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
-        let Image = await gfs.files.findOne({ _id: req.file.id });
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false || b.OK == false && b.code == 12671)  {
-            await gfs.db.collection('kaiurlImages.chunks').deleteMany({ files_id: Image._id }).then(async () => {
-                await gfs.files.deleteOne({ _id: Image._id }).then(() => {
-                    res.status(401).render('./error/index', { u: null, theme: theme, errorMessage: `Could not authenticate request.` });
-                }).catch(e => { res.send(e) });
-            });
-        }
-        await gfs.files.updateOne({ _id: Image._id }, { $set: { filename: `${findUser.userid}.png`, user: findUser.userid } }).then(() => { res.redirect('/account/edit') });
+a.get('/', (req, res) => {
+    res.json({
+        "OK": true
     });
 });
 
-a.get('/delete', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.post('/', upload.single('Image'), async function (req, res) {
+    let theme = req.cookies.Theme;
     if (!theme) theme = null;
-    if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        if (b.OK == false) return res.redirect(`/login?redirect=${req.originalUrl}`);
-
-        res.json({ OK: true });
+    if (!req.cookies.auth) return res.redirect('/login?redirect=/account/edit');
+    if (!req.cookies.auth_key) return res.redirect('/login?redirect=/account/edit');
+    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
+    if (!checkUser) return res.status(500).render('./error/index', { theme: theme, errorMessage: `Could not find user!`, u: null });
+    if (!req.file) return res.status(500).render('./error/index', { theme: theme, errorMessage: `Could not find file!`, u: checkUser });
+    await gfs.files.findOne({ _id: req.file.id }, async function (e, r) {
+        if (e) return res.status(500).render('./error/index', { theme: theme, errorMessage: e, u: checkUser });
+        if (r == null) res.redirect('/account/edit');
+        if (r) {
+            await gfs.files.updateOne({ _id: r._id }, { $set: { filename: `${checkUser.userid}.png`, user: checkUser.userid } }).then(() => {
+                res.redirect('/account/edit');
+            });
+        };
     });
 });
 
 a.post('/delete', async function (req, res) {
-    let {theme, auth} = req.cookies;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        if (b.OK == false) return res.redirect(`/login?redirect=${req.originalUrl}`);
-        let Image = await gfs.files.findOne({ filename: `${findUser.userid}.png`, user: findUser.userid });
-        if (!Image) return res.status(404).render('./error/index', { theme: theme, u:findUser, errorMessage: `Could not find avatar` });
+    if (req.cookies.token && req.cookies.auth) {
+        let Image = await gfs.files.findOne({ filename: `${req.cookies.token}.png`, user: req.cookies.token }) || await gfs.files.findOne({ filename: `${req.cookies.token}-${req.cookies.auth}.png` });
+        if (!Image) return res.status(404).send('Could not find file!');
         await gfs.db.collection('kaiurlImages.chunks').deleteMany({ files_id: Image._id }).then(async () => {
             await gfs.files.deleteOne({ _id: Image._id }).then(() => {
                 res.redirect('/account/edit');
-            }).catch(e => { res.send(e) });
-        });
-    });
+            }).catch(e => { res.status(500).send(e) });
+        }).catch(e => { res.status(500).send(e) });
+    } else {
+        res.redirect('/login');
+    };
 });
 
 a.get('/:fileName', async function (req, res) {
     let name = req.params.fileName;
     await gfs.files.findOne({ filename: name }, (err, file) => {
         if (err) return console.log(err);
-        if (!file || file.length === 0) return error404(req, res);
+        if (!file || file.length === 0) return res.status(404).send(`Could not find file '${name}'.`);
         const readstream = gridFSBucket.openDownloadStream(file._id);
         return readstream.pipe(res);
     });

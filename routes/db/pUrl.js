@@ -4,9 +4,14 @@ const shorturlSchema = new mongoose.Schema({
     full: String,
     short: String,
     clicks: Number,
-    verified: Boolean,
+    official: Boolean,
     removed: Boolean,
     date: Date,
+    user: String,
+    Domain: {
+        type: String,
+        default: "kaiurl.xyz"
+    },
     userID: String
 });
 

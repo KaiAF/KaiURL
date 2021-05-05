@@ -1,4 +1,3 @@
 1. Make a format for changelogs.
 2. Make public URLs not public, and require urls (that are permanent) to be logged in.
-3. Update ToS and create a privacy policy.
-4. Add a newsletter for major updates and small changes.
+3. Add privacy settings for profiles.

@@ -9,7 +9,6 @@ const secret_key = process.env.SECRET_KEY;
 
 a.get('/', authJWT, async function (req, res) {
     let error = { message: `Could not authenticate request.`, status: 401 };
-    if (req.headers['user-agent'] !== "KaiURL.xyz Auth") return res.status(401).json({ OK: false, error, code: 189247 });
     let {q} = req.query;
     if (!q) return res.status(401).json({ OK: false, error, code: 176254 });
     await userAuth.findOne({ Id: q }, async function (e, r) {

@@ -12,7 +12,7 @@ a.get('/admin', async function (req, res) {
     let {theme, auth} = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -27,7 +27,7 @@ a.get('/:id', async function (req, res) {
     let {theme, auth} = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);

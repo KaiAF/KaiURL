@@ -19,7 +19,7 @@ a.get('/link/callback', async function (req, res) {
     let {theme, auth} = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -96,7 +96,7 @@ a.get('/link', async function (req, res) {
 a.post('/link', async function (req, res) {
     let {auth} = req.query;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request`, status: 401 }, code: 214789 });
@@ -191,7 +191,7 @@ a.post('/unlink', async function (req, res) {
     let {theme, auth} = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request`, status: 401 }, code: 8911 });

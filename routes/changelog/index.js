@@ -56,7 +56,7 @@ a.post('/new', async function (req, res) {
         new changelog({
             title: title,
             description: changes,
-            version: vName,
+            version: version,
             date: Date.now(),
             Id: id
         }).save();

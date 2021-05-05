@@ -60,7 +60,7 @@ a.get('/', async function (req, res) {
         let findNews = await news.findOne({}).sort({ date: -1 });
         if (!findNews) findNews = null;
         res.render('./home/index', { u: findUser, theme: theme, news: findNews });
-    });
+    }).catch(e => { console.log(e); res.send('Error') });
 });
 
 a.get('/u', async function (req, res) {

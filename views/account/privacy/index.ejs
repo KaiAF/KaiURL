@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../../meta/index', { page: "Edit Account Privacy Settings", url: "account/privacy" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/account/privacy", pageName: "Account" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <center>
+                <div class="center-container">
+                    <p class="error" id="error"></p>
+                    <p>Your privacy settings:</p>
+                    <form class="form" id="form-privacy-settings">
+                        <label for="checkbox" class="form-label">Hide private url count?</label>
+                        <input type="checkbox" <% if (privacy && privacy.hideUrls == true) { %>checked<% } %> name="hideUrlCount" id="checkbox"><% if (u.perms) { %>
+                        <br>
+                        <label for="checkbox" class="form-label">Hide user role?</label>
+                        <input type="checkbox" <% if (privacy && privacy.hideRole == true) { %>checked<% } %> name="hideRole" id="checkbox"><% } %>
+                        <br><% if (u.discord || u.ifDiscord == true){%>
+                        <label for="checkbox" class="form-label">Show linked Discord account?</label>
+                        <input type="checkbox"<%if(privacy && privacy.hideDiscord == true){%>checked<%}%> name="hideDiscord" id="checkbox"><br><%}%>
+                        <button type="submit" class="form-button">Submit</button>
+                    </form>
+                </div>
+            </center>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script defer>
+$('#form-privacy-settings').submit(function (e) {
+    e.preventDefault();
+    const formData = new URLSearchParams(new FormData(this));
+    fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((r) => {
+        let url;
+        if (r.debug == false && r.Url == false) url = "https://api.kaiurl.xyz";
+        if (r.debug == true && url == r.Url == false) url = "http://localhost:3000"
+        fetch(`${url}/user/privacy?q=${getCookie('auth')}`, {
+            method: 'post',
+            body: formData
+        }).then((r) => r.json()).then(async function (b) {
+            let g = document.getElementById('error');
+            if (!b.OK) {
+                if (g.innerHTML) {
+                    g.innerHTML = "";
+                    g.innerHTML = b.error.message;
+                } else {
+                    g.innerHTML = b.error.message;
+                };
+            } else {
+                window.location.reload(1);
+            }
+        });
+    });
+});
+</script>

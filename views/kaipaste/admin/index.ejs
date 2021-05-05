@@ -23,9 +23,17 @@
                         <tr>
                             <td><a href="/kaipaste/<%- p.id %>"><%= p.title %></a></td>
                             <% if (!p.removed) { %>
-                            <td><a href="/kaipaste/remove/<%= p.id %>">Remove</a></td>
+                            <td>
+                            <form action="/kaipaste/remove/<%- p._id %>" method="post" class="form">
+                                <button class="form-button" type="submit">Remove</button>
+                            </form>
+                            </td>
                             <% } else { %>
-                            <td><a href="/kaipaste/add/<%= p.id %>">Add</a></td>
+                            <td>
+                                <form action="/kaipaste/add/<%- p._id %>" method="post" class="form">
+                                    <button class="form-button" type="submit">Add</button>
+                                </form>
+                            </td>
                             <% } %>
                         </tr>
                     </tbody>

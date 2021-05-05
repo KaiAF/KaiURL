@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%- include('../meta/index', { page: "Edit Account", url: "account/edit" }); %>
+    <link rel="stylesheet" href="/css/popUp_overlay.css">
 </head>
 <body>
     <div id="sideBar" class="sidebar">
@@ -12,6 +13,7 @@
     </div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+        <span class="nav-acc"><a href="/account/privacy">Privacy Settings</a></span> <br>
     </div>
     <div class="container">
         <div class="main">
@@ -37,28 +39,53 @@
                 <label for="desc" class="form-label">Change Description:</label><br>
                 <input name="desc" type="text" class="form-input" id="desc" placeholder="<% if (u.description) { %><%= u.description %><% } else { %>Description<% } %>" autocomplete="off" spellcheck="off">
                 <button type="submit" class="form-button">Change Description</button>
-            </form>
-            <form class="form" id="form-twitter">
-                <label for="twitter" class="form-label">Link Twitter:</label><br>
-                <input name="twitter" type="text" class="form-input" id="twitter" placeholder="https://twitter.com/<% if (u.twitter) { %><%= u.twitter %> <% } %>" autocomplete="off" spellcheck="off">
-                <button type="submit" class="form-button">Link</button>
-            </form>
-            <form class="form" id="form-youtube">
-                <label for="youtube" class="form-label">Link Youtube:</label><br>
-                <input name="youtube" type="text" class="form-input" id="youtube" placeholder="https://www.youtube.com/<% if (u.youtube) { %><%= u.youtube %> <% } %>" autocomplete="off" spellcheck="off">
-                <button type="submit" class="form-button">Link</button>
-            </form>
-            <form class="form" id="form-discord">
-                <label for="discord" class="form-label">Link Discord:</label><br>
-                <input name="discord" type="text" class="form-input" id="discord" placeholder="<% if (u.discord) { %><%= u.discord %> <% } else { %>user#0000<% } %>" autocomplete="off" spellcheck="off">
-                <button type="submit" class="form-button">Link</button>
-            </form>
-            <form class="form" id="form-glimesh">
-                <label for="glimesh" class="form-label">Link Glimesh Account:</label><br>
-                <input name="glimesh" type="text" class="form-input" id="glimesh" placeholder="https://glimesh.tv/<% if (u.glimesh) { %><%= u.glimesh %> <% } %>" autocomplete="off" spellcheck="off">
-                <button type="submit" class="form-button">Link</button>
-            </form>
+            </form><% if (u.ifDiscord == false && !u.discord) { %>
+                <p class="error">No Discord account is linked.</p>
+                <span class="button"><a href="#policy">Link</a></span>
+            <% } else if (u.ifDiscord == false && u.discord) { %>
+                <p>Discord account is linked to <%= userDiscord.username %>#<%=userDiscord.userDisc%></p>
+                <span class="button"><a href="#confirm">Unlink</a></span><% } %>
+                <br><br>
         </div>
+        <% if (!u.discord) { %>
+            <div id="policy" class="overlay">
+              <div class="popup">
+                <h2>Privacy Policy</h2>
+                <div class="content">
+                  <p>You accept that KaiURL will gather this data..</p>
+                  <p>
+                      KaiURL Account Data:
+                      <li>Provided Email</li>
+                      <li>Provided Password</li>
+                      <br>
+                      <small style="font-weight: bold;">The provided data will always be encrypted to ensure your data will not be easily leaked.</small>
+                  </p>
+                  <p>
+                      Discord Account Data:
+                      <li>Discord Email</li>
+                      <li>Discord Account Id</li>
+                      <li>Discord Account Discriminator</li>
+                      <li>Discord Account Username</li>
+                      <li>Callback Code (This will be deleted after the account is fully linked)</li>
+                      <br>
+                      <small style="font-weight: bold;">The provided data will always be encrypted to ensure your data will not be easily leaked.</small>
+                  </p>
+                      <span class="button"><a href="/api/discord/link">I accept</a></span>
+                      <span class="button"><a href="#closed">Cancel</a></span>
+                </div>
+              </div>
+            </div><% } else { %>
+              <div id="confirm" class="overlay">
+                  <div class="popup">
+                      <p class="error">Are you sure you want to unlink your Discord account?</p>
+                      <div class="content">
+                          <small><form action="/api/discord/unlink" method="post" class="form">
+                              <button class="form-button">Yes</button>
+                              <span class="button"><a href="#closed">Cancel</a></span>
+                          </form></small>
+                      </div>
+                  </div>
+              </div><% } %>
         <br>
         <div class="center-container">
             <button class="form-button"><a class="button" href="/passwordReset">Reset Password</a></button>
@@ -67,4 +94,3 @@
 </div>
 </body>
 </html>
-<script defer src="/js/form.js"></script>

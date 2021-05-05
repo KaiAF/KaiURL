@@ -25,15 +25,25 @@
             <h2>How to reproduce the bug: <%= bug.reproduce %></h2>
             <p class="error">Bug Status: <%= bug.status %></p>
             <center>
-                <form action="/support/report-bug/reportId/<%- bug.bugId %>/comment" class="form" method="POST">
-                    <label for="com" class="form-label">Comment:</label><br>
-                    <input type="text" name="comment" id="com" spellcheck="off" autocomplete="off" class="form-input">
-                    <br>
-                    <button type="submit" class="form-button">Comment</button>
-                </form>
+                <div class="center-container">
+                    <p class="error" id="message"></p>
+                    <form id="form" class="form">
+                        <label for="com" class="form-label">Comment:</label><br>
+                        <input type="text" name="comment" id="com" spellcheck="off" autocomplete="off" class="form-input">
+                        <br>
+                        <button type="submit" class="form-button">Comment</button>
+                    </form>
+                <% if (comment[0]) { %>
+                <% comment.forEach(e => { %>
+                    <% if (e.removed) {} else { %>
+                        <p><a href="/<%- e.authorId %>"><%- e.author %></a>: <%- e.comment %><% if (u.userid === e.authorId) { %> <form class="form" id="form-remove-comment"><input type="text" hidden value="<%- e.commentId %>" name="id" id="id"> <button type="submit" class="form-button">Delete comment</button></form> <% } %></p>
+                    <% } %>
+                <% }); %>
+                <% } %>
+                </div>
             <% if (admin) { %>
                 <br><br>
-                <form action="/support/report-bug/reportId/<%- bug.bugId %>/status" method="post" class="form">
+                <form id="form-status" class="form">
                     <label for="status" class="form-label">Change Status:</label>
                     <select name="status" id="status" class="form-input">
                         <option value="Waiting">Waiting..</option>
@@ -44,18 +54,92 @@
                     <button type="submit" class="form-button">Submit</button>
                 </form>
             <% } %>
-            <% if (bug.comment.length > 0) { %>
-                <div class="center-container">
-                    <% bug.comment.forEach(e => { %>
-                        <% let a = e.split('|'); %>
-                        <p><%- a[1] %> - <% if (a[0].replace('userId-', '') == bug.userId) { %> <a href="/user/<%- a[0].replace('userId-', '') %>">Reporter</a> <% } else { %> <a href="/user/<%- a[0].replace('userId-','') %>">ADMIN</a> <% } %></p>
-                        <% let t = user.findOne({ userid: a[0].replace('userId-', '') }); %> 
-                    <% }); %>
-                </div>
-            <% } %>
             </center>
         </div>
     </div>
     </div>
 </body>
 </html>
+<script defer>
+    $('#form').submit(function (e) {
+        e.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch('/config.json', { method: 'get' }).then((r) => r.json()).then(function (a) {
+            let url;
+            if (a.Url == false && a.debug == true) url = `http://localhost:3000`;
+            if (a.Url == true && a.debug == false || a.Url == false && a.debug == false) url = `https://api.kaiurl.xyz`;
+            fetch(`${url}/bug/<%= bug.bugId %>/comment?q=${getCookie('auth')}`, { 
+                method: 'POST',
+                body: formData 
+            }).then((r) => r.json()).then((b) => {
+                if (b.OK == false) {
+                    let g = document.getElementById('message');
+                    if (g.innerHTML) {
+                        g.innerHTML = "";
+                        g.innerHTML = b.error.message;
+                    } else {
+                        g.innerHTML = b.error.message;
+                    }
+                } else {
+                    window.location.reload(1);
+                }
+            })
+        });
+    });
+
+    $("#form-remove-comment").submit(function(event) {
+        event.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch(`/config.json`, { method: 'get' }).then((r) => r.json()).then((re) => {
+            let url;
+            if (re.debug == true && re.Url == false) url = "http://localhost:3000"
+            if (re.Url == true) url = "https://api.kaiurl.xyz"
+            const data = Object.fromEntries(new FormData(event.target).entries());
+            fetch(`${url}/bug/<%= bug.bugId %>/comment/remove?q=${getCookie('auth')}&comment=${data.id}`, { 
+                method: 'POST',
+                body: formData 
+            }).then((r) => r.json()).then((b) => {
+                if (b.OK == false) {
+                    let g = document.getElementById('message');
+                    if (g.innerHTML) {
+                        g.innerHTML = "";
+                        g.innerHTML = b.error.message;
+                    } else {
+                        g.innerHTML = b.error.message;
+                    }
+                } else {
+                    window.location.reload(1);
+                }
+            })
+        });
+    });
+
+    $("#form-status").submit(function(event) {
+        event.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch(`/config.json`, { method: 'get' }).then((r) => r.json()).then((re) => {
+            let url;
+            if (re.debug == true && re.Url == false) url = "http://localhost:3000"
+            if (re.Url == true) url = "https://api.kaiurl.xyz"
+            const data = Object.fromEntries(new FormData(event.target).entries());
+            fetch(`${url}/bug/<%= bug.bugId %>/status?q=${getCookie('auth')}`, { 
+                method: 'POST',
+                body: formData 
+            }).then((r) => r.json()).then((b) => {
+                if (b.OK == false) {
+                    let g = document.getElementById('message');
+                    if (g.innerHTML) {
+                        g.innerHTML = "";
+                        g.innerHTML = b.error.message;
+                    } else {
+                        g.innerHTML = b.error.message;
+                    }
+                } else {
+                    window.location.reload(1);
+                }
+            })
+        });
+    });
+
+</script>
+<script src="/js/form.js" defer></script>

@@ -5,7 +5,7 @@ const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const { checkPerm } = require('../permissions');
-const { error404 } = require('../errorPage');
+
 require('dotenv').config();
 
 var url = process.env.MONGODB;
@@ -14,6 +14,7 @@ const user = require('../db/user');
 const apiKey = require('../db/apiKey');
 const fetch = require('node-fetch');
 const config = require('../config.json');
+const { error404 } = require('../errorPage');
 
 async function checkfName(req, file) {
     if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
@@ -51,7 +52,6 @@ async function Filter(req, file, cb) {
         } else {
             cb(new Error(`'${file.mimetype}' is an Invalid File type.`));
         }
-        //if (file.mimetype == "image/vnd.microsoft.icon" || file.mimetype == 'application/java-archive' || file.mimetype == 'application/x-msdos-program')
     });
 }
 
@@ -72,74 +72,108 @@ conn.once('open', async function() {
 });
 
 a.get('/', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser) checkUser = null;
-    res.render('./image/index', { theme: theme, u: checkUser });
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        res.render('./image/index', { theme: theme, u: findUser });
+    });
 });
 
 a.get('/admin', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser) return error404(req, res);
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
-    await gfs.files.find({}).sort({ uploadDate: -1 }).toArray((e, files) => {
-        let a = [];
-        if (!files || files.length === 0) a = null;
-        if (files || files.length > 0) {
-            files.map(f => {
-                a.push(f);
-            });
-        }
-        res.render('./image/all', { theme: theme, u: checkUser, img: a });
-    }); 
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return error404(req, res);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res);
+        await gfs.files.find({}).sort({ uploadDate: -1 }).toArray((e, files) => {
+            let a = [];
+            if (!files || files.length == 0) a = null;
+            if (files || files.length > 0) {
+                files.map(f => { a.push(f) });
+            };
+            res.render('./image/all', { theme: theme, u: findUser, img: a });
+        });
+    });
 });
 
-a.get('/:fileName/admin', async function (req, res) {
-    let theme = req.cookies.Theme;
+a.get('/:id/admin', async function (req, res) {
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser) return error404(req, res);
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
-    let findImages = await gfs.files.findOne({ filename: req.params.fileName });
-    if (!findImages) return error404(req, res);
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return error404(req, res);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res);
+        let Image = await gfs.files.findOne({ filename: req.params.id });
+        if (!Image) return res.status(404).send('Could not find file');
 
-    res.render('./image/admin.ejs', { theme: theme, u: checkUser, image: findImages })
+        res.render('./image/admin', { theme: theme, u: findUser, image: Image });
+    });
 });
 
-a.post('/:fileName/delete', async function (req, res) {
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
-    let findImages = await gfs.files.findOne({ filename: req.params.fileName });
-    if (findImages) {
-        await gfs.files.updateOne({ filename: req.params.fileName }, { $set: { removed: true } }).then(() => { res.redirect('/i/' + req.params.fileName + '/admin'); });
-    }
+a.post('/:id/delete', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser || await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res)
+        let findImages = await gfs.files.findOne({ md5: req.params.id });
+        if (!findImages) return res.status(404).json({ OK: false, error: { message: `Could not find file`, status: 404 } });
+        await gfs.files.updateOne({ md5: req.params.id }, { $set: { removed: true } }).then(() => { res.redirect(`/i/${findImages.filename}/admin`); });
+    });
 });
 
-a.post('/:fileName/delete/admin', async function (req, res) {
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return res.status(404).render('./error/index', { errorMessage: 'You do not have access to this page.', theme: theme, u: checkUser });
-    let findImages = await gfs.files.findOne({ filename: req.params.fileName });
-    if (findImages) {
+a.post('/:id/delete/admin', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser || await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res)
+        let findImages = await gfs.files.findOne({ md5: req.params.id });
+        if (!findImages) return res.status(404).json({ OK: false, error: { message: `Could not find file`, status: 404 } });
         await gfs.db.collection('Images.chunks').deleteMany({ files_id: findImages._id }).then(async () => {
             await gfs.files.deleteOne({ _id: findImages._id }).then(() => {
                 res.redirect('/i/admin');
             }).catch(e => { res.status(500).send(e) });
         }).catch(e => { res.status(500).send(e) });
-    } else {
-        res.status(500).json({ OK: false, error: 'Could not find file.' });
-    };
+    });
 });
 
-a.post('/:fileName/add', async function (req, res) {
-    let checkUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (!checkUser || await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
-    let findImages = await gfs.files.findOne({ filename: req.params.fileName });
-    if (findImages) {
-        await gfs.files.updateOne({ filename: req.params.fileName }, { $set: { removed: false } }).then(() => { res.redirect('/i/' + req.params.fileName + '/admin'); });
-    }
+a.post('/:id/add', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser || await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res)
+        let findImages = await gfs.files.findOne({ md5: req.params.id });
+        if (!findImages) return res.status(404).json({ OK: false, error: { message: `Could not find file`, status: 404 } });
+        await gfs.files.updateOne({ md5: req.params.id }, { $set: { removed: false } }).then(() => { res.redirect(`/i/${findImages.filename}/admin`); });
+    });
 });
 
 a.post('/', upload.single('File'), async function (req, res) {
@@ -159,40 +193,44 @@ a.post('/', upload.single('File'), async function (req, res) {
     });
 });
 
-a.get('/:fileName/embed', async function (req, res) {
-    let name = req.params.fileName
-    let theme = req.cookies.Theme;
+a.get('/:id', async function (req, res) {
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let findUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (findUser == null) findUser = null;
-    await gfs.files.findOne({ filename: name }, (err, file) => {
-        if (err) return console.log(err);
-        if (!file || file.length === 0) return error404(req, res);
-        if (findUser) {
-            if (file.removed == true && findUser.perms !== "ADMIN") return error404(req, res);
-        } else {
-            if (file.removed == true) return error404(req, res);
-        }
-        const readstream = gridFSBucket.openDownloadStream(file._id);
-        return readstream.pipe(res);
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        await gfs.files.findOne({ filename: req.params.id }, async (e, f) => {
+            if (!f) return error404(req, res);
+            if (findUser) {
+                if (f.removed && await checkPerm(findUser.userid) == "ADMIN") return res.redirect('/i/' + f.filename + '/admin');
+                if (f.removed) return error404(req, res);
+            } else {
+                if (f.removed) return error404(req, res);
+            }
+            const readstream = gridFSBucket.openDownloadStream(f._id);
+            return readstream.pipe(res);
+        });
     });
 });
 
-a.get('/:fileName', async function (req, res) {
-    let name = req.params.fileName
-    let findUser = await user.findOne({ _id: req.cookies.auth, auth_key: req.cookies.auth_key });
-    if (findUser == null) findUser = null;
-    await gfs.files.findOne({ filename: name }, (err, file) => {
-        if (err) return console.log(err);
-        if (!file || file.length === 0) return error404(req, res);
-        if (findUser) {
-            if (file.removed == true && findUser.perms !== "ADMIN") return error404(req, res);
-            if (file.removed == true && findUser.perms == "ADMIN") res.redirect(`/i/${file.filename}/admin`);
-        } else {
-            if (file.removed == true) return error404(req, res);
-        }
-        const readstream = gridFSBucket.openDownloadStream(file._id);
-        return readstream.pipe(res);
+a.get('/:id/embed', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser || await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res);
+        await gfs.files.findOne({ filename: req.params.id }, (e, f) => {
+            if (!f) return error404(req, res);
+            const readstream = gridFSBucket.openDownloadStream(f._id);
+            return readstream.pipe(res);
+        });
     });
 });
 

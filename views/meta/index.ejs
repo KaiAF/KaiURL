@@ -1,4 +1,4 @@
-<noscript><meta http-equiv="Refresh" content="0; url='/error/enable-javascript-please'" /></noscript>
+<noscript><meta http-equiv="Refresh" content="0; url='/enable-javascript'"/></noscript>
     <!-- Primary Meta Tags -->
     <link rel="icon" href="/icon.ico">
     <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -37,15 +37,13 @@
     <meta property="twitter:title" content="<%= page %>">
     <meta property="twitter:description" content="KaiURL is a website that allows you to shrink urls, which are uploaded to a database and seen publicly. For more information, check out our About page!">
     <meta property="twitter:image" content="https://www.kaiurl.xyz/icon.ico">
-    <meta name="theme-color" content="#28a745">
-    <% } %> 
-    <!-- CSS --><% if (theme) { if (theme == 'dark') { %>
-    <link rel="stylesheet" href="/css/style.css"> <% } else { %>
-    <link rel="stylesheet" href="/css/index.css"> <% }} else { %>
-    <link rel="stylesheet" href="/css/index.css"> <% } if (url == "u" || url == "i/admin" || url == "kaipaste/admin" || url == "account" || url == "account/files") { %>
-    <% if (theme && theme == "dark") { %><link rel="stylesheet" href="/css/tableDark.css"><% } else { %><link rel="stylesheet" href="/css/table.css"><% }} %>
-
+    <meta name="theme-color" content="#28a745"><% } %> 
+    <!-- CSS --><% if (!u){%>
+    <link rel="stylesheet" href="<%if(theme && theme == 'dark'){%>/css/dark.css<%}else{%>/css/light.css<%}%>"><%}else{%>
+    <link rel="stylesheet" href="<%if(u.theme == 'dark'){%>/css/dark.css<%}else{%>/css/light.css<%}%>"><%}%><%if(!u){%>
+    <link rel="stylesheet" href="<%if(theme && theme == 'dark'){%>/css/tableDark.css<%}else{%>/css/table.css<%}%>"><%}else{%>
+    <link rel="stylesheet" href="<%if(u.theme == 'dark'){%>/css/tableDark.css<%}else{%>/css/table.css<%}%>"><%}%>
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
     <script defer src="/js/nav.js"></script>
-    <%if(u){%><script defer src="/js/user.js"></script><%}%>
+    <script defer src="/js/form.js"></script>

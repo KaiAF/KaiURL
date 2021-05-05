@@ -3,12 +3,14 @@ const multer = require('multer');
 const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
+const fetch = require('node-fetch');
 
 const blockedName = require('../db/blockedName');
 const user = require('../db/user');
+const userPrivacy = require('../db/privacy/index');
 const pvurl = require('../db/pUrl');
-const { error404 } = require('../errorPage');
 const { checkPerm } = require('../permissions');
+const { error404 } = require('../errorPage');
 
 const conn = mongoose.createConnection(process.env.MONGODB, {
     useNewUrlParser: true,
@@ -22,40 +24,36 @@ conn.once('open', async function() {
     gfs.collection('kaiurlImages');
 });
 
-a.get('/:name', async function (req, res) {
-    let userid = req.cookies.token;
-    let id = req.cookies.auth;
-    let theme = req.cookies.Theme;
+// This is for actual user that isn't admin!
+a.get('/:account', async function (req, res) {
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    if (!userid) userid = null;
-    if (!id) id = null;
-    let checkLog = await user.findOne({ userid: userid, _id: id });
-    if (!checkLog) checkLog = null;
-    let findUser = await user.findOne({ officialName: req.params.name.toUpperCase() }) || await user.findOne({ userid: req.params.name });
-    if (!findUser) return error404(req, res);
+    if (!auth) auth = ""
 
-    let countUserName = await user.countDocuments({ officialName: req.params.name.toUpperCase() });
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
 
-    let checkBlockedName = await blockedName.findOne({ title: 'list' });
-    if (!checkBlockedName) checkBlockedName = null;
+        let USER = await user.findOne({ officialName: req.params.account.toUpperCase() }) || await user.findOne({ userid: req.params.account });
+        if (!USER) return error404(req, res);
+        let countUserName = await user.countDocuments({ officialName: req.params.account.toUpperCase() });
+        let checkBlockedName = await blockedName.findOne({ title: 'list' });
+        if (!checkBlockedName) checkBlockedName = null;
 
-    let user_urls = await pvurl.find({ userID: findUser.userid });
-    let Image = await gfs.files.findOne({ filename: `${findUser.userid}-${findUser._id}.png` }) || await gfs.files.findOne({ filename: `${findUser.userid}.png`, user: findUser.userid });
-    if (!Image) Image = null;
+        let userUrls = await pvurl.find({ userID: USER.userid });
+        let Image = await gfs.files.findOne({ filename: `${USER.userid}.png`, user: USER.userid });
+        if (!Image) Image = null;
+        let findPrivacy = await userPrivacy.findOne({ user: USER._id });
+        if (!findPrivacy) findPrivacy = null;
 
-    if (countUserName > 1 && findUser.perms == null) {
-        let findUser = await user.find({ officialName: req.params.name.toUpperCase() });
-        return res.render('./account/pubProfile2', { u: checkLog, theme: theme, number: countUserName, image: Image, user: findUser });
-    } else {
-        let perms;
-        if (checkLog) {
-            perms = await checkPerm(checkLog.userid);
+        if (countUserName > 1 && USER.perms == null) {
+            res.render('./account/pubProfile2', { u: b.user, theme: theme, number: countUserName, image: Image, user: USER });
         } else {
-            perms = null;
+            if (b.user && await checkPerm(b.user.userid) == "ADMIN") return res.render('./account/pubProfile', { theme: theme, u: b.user, user: USER, Name: checkBlockedName, uUrl: userUrls, image: Image, privacy: findPrivacy, admin: true });
+            res.render('./account/pubProfile', { theme: theme, u: b.user, user: USER, Name: checkBlockedName, uUrl: userUrls, image: Image, privacy: findPrivacy, admin: false });
         }
-        //if (checkLog && checkLog.userid === findUser.userid) return res.render('./account/pubProfile', { u: checkLog, theme: theme, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image });
-        res.render('./account/pubProfile', { theme: theme, u: checkLog, user: findUser, Name: checkBlockedName, uUrl: user_urls, image: Image, checkPerm: perms });
-    };
+    });
 });
 
 module.exports = a;

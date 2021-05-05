@@ -15,41 +15,16 @@
     </div>
     <div class="container">
         <div class="main">
-            <h3>If a URL has a '✔' at the end, this means its an official URL.</h3>
             <div class="u">
                 <center>
+                <h3><input class="searchBar" type="text" id="myInput" onkeyup="searchUrl()" placeholder="Search for URLs.." title="Type in a url"></h3>
                 <table id="container">
-                    <tr>
-                        <th>Short URL</th><th>Show URL Details</th>
-                    </tr>
-                    <tbody>
-                        <% r.forEach(short => { %>
-                        <% if (short.removed) { %>
-                            <% return %>
-                        <% } %>
+                    <tr><th>Short URL</th><th>Show URL Details</th></tr>
+                    <tbody><% r.forEach(short => { if (short.removed) { return } %>
                         <tr>
-                        <% if (short.Domain === 'shrturl.link') { %>
-                            <td>
-                                <% if (!theme) { %>
-                              <a id="id" class="title" style="color: rgb(22, 85, 22)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
-                              <% } else if (theme == 'dark') { %>
-                                <a id="id" class="title" style="color: rgb(32, 136, 32)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
-                                <% } else { %>
-                                    <a id="id" class="title" style="color: rgb(22, 85, 22)" href="https://www.shrturl.link/<%= short.short %>" target="__blank" title="<%= short.full %>">https://shrturl.link/<%= short.short %></a>
-                                <% } %>
-                              <% if (short.official) { %>
-                                ✔
-                                <% }} else { %>
-                                    <td>
-                                      <a id="id" class="title" href="/<%= short.short %>" target="__blank" title="<%= short.full %>">https://www.kaiurl.xyz/<%= short.short %>  </a>
-                                      <% if (short.official) { %>
-                                        ✔
-                                        <% } %>
-                                      <% } %>
-                        </td>
-                            <td class="find"><a class="whitetitle" href="/r/<%= short.short %>/find" target="_" title="<%= short.full %>">/find</a></td>
-                        </tr>
-                       <% }) %>
+                            <td><a href="/<%-short.short%>" target="_" title="<%-short.full%>">https://www.kaiurl.xyz/<%-short.short%></a><%if(short.verified){%>  ✔<%}%></td>
+                            <td><a href="https://api.kaiurl.xyz/<%-short.short%>" target="_" title="<%= short.full %>">/find</a></td>
+                        </tr><% }) %>
                     </tbody>
                 </table>
             </center>
@@ -58,3 +33,20 @@
     </div>
 </body>
 </html>
+<script>
+    function searchUrl() {
+        var input, filter, td, a, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        td = document.getElementsByTagName("td");
+        for (i = 0; i < td.length; i++) {
+            a = td[i].getElementsByTagName("a")[0];
+            txtValue = a.title || a.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                td[i].style.display = "";
+            } else {
+                td[i].style.display = "none";
+            }
+        }
+    }
+</script>

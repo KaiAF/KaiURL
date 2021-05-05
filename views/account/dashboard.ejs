@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <%- include('../meta/index', { page: "API Dashboard", url: "account/api/dashboard" }); %>
+    <%- include('../meta/index', { page: "API Dashboard", url: "account/dashboard" }); %>
 </head>
 <body>
     <div id="sideBar" class="sidebar">
-        <%- include('../header/index', { page: "/account/api/dashboard", pageName: "Account" }) %>
+        <%- include('../header/index', { page: "/account/dashboard", pageName: "Account" }) %>
     </div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
@@ -29,7 +29,7 @@
                     <p class="error">Please treat this key as your password, do NOT show this to people you don't know.</p>
                     <a id="spoiler" href="javascript:showSpoiler('apiKey', true)">Show Key</a>
                     <div id="apiKey" style="visibility: hidden;">
-                        <p class="code"><%- key.key %></p>
+                        <kbd><%- key.key %></kbd>
                     </div>
                     <form method="post" class="form" id="form-api">
                         <button class="form-button">Regenerate Key</button>
@@ -41,7 +41,7 @@
     </div>
 </body>
 </html>
-<script defer src="/js/form.js"></script>
+
 <script defer>
     function showSpoiler(a, b) {
         if (b) 

@@ -19,12 +19,14 @@ const userSchema = new mongoose.Schema({
     glimesh: String,
     description: String,
     auth_key: String,
-    role: String,
     passwordReset: Boolean,
     sinceLastReset: String,
     resetId: String,
     ifDiscord: Boolean,
-    perms: String
+    perms: String,
+    removed: Boolean,
+    reason: String,
+    theme: String
 });
 
 module.exports = mongoose.model('userpasses', userSchema);

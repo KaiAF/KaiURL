@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const crypto = require('crypto-js');
+const fetch = require('node-fetch');
 const { checkPerm } = require('../permissions');
 const { error404 } = require('../errorPage');
 
@@ -7,43 +8,164 @@ const text = require('../db/kaipaste');
 const user = require('../db/user');
 
 a.get('/', async function (req, res) {
-  let theme = req.cookies.Theme;
-  if (!theme) theme = null;
-  let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-  if (!check_user) return res.redirect('/login?redirect=/kaipaste');
-  res.render('./kaipaste/index', { theme: theme, u: check_user });
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=' + req.originalUrl);
+        res.render('./kaipaste/index', { theme: theme, u: findUser });
+    });
+});
+
+a.get('/create', async function (req, res) {
+    res.redirect('/kaipaste');
 });
 
 a.post('/create', async function (req, res) {
-    let username = req.cookies.userName;
-    let auth_key = req.cookies.auth_key;
-    if (!auth_key && username) return res.status(404).json({ "OK": false, errorMessage: `Could not authenticate user.` });
-    let findUser = await user.findOne({ auth_key: auth_key, _id: req.cookies.auth });
-    if (!findUser) return res.status(404).json({ "OK": false, errorMessage: `Could not authenticate user.` });
-    if (!req.body.title) return res.status(404).json({ "OK": false, errorMessage: `You need to have a title` });
-    if (!req.body.desc) return res.status(404).json({ "OK": false, errorMessage: `You need to have a description` });
-    let r = Math.random().toString(35).substring(5);
-    new text({
-        id: r,
-        title: req.body.title,
-        description: req.body.desc,
-        date: Date.now(),
-        user: username,
-        userID: findUser.userid,
-        removed: false
-    }).save().then(() => {
-        return res.json({ "OK": true, message: `/kaipaste/${r}` });
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let error = { message: `Could not authenticate request.`, status: 401 };
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.status(401).json({ OK: false, error, code: 1278 });
+        let {title, desc} = req.body;
+        if (!title || !desc) return res.status(500).json({ OK: false, error: { message: `You left one of the fields blank!`, status: 500 } });
+        let rId = Math.random().toString(35).substring(5);
+        new text({
+            user: findUser._id,
+            title: title,
+            description: desc,
+            id: rId,
+            date: new Date()
+        }).save().then(() => {
+            return res.json({ "OK": true, message: `/kaipaste/${rId}` });
+        });
     });
 });
 
 a.get('/admin', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-    let kP = await text.find();
-    if (!check_user) return res.redirect('/');
-    if (await checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
-    res.render('./kaipaste/admin/index', { theme: theme, u: check_user, paste: kP });
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=' + req.originalUrl);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return res.sendStatus(401);
+        let kP = await text.find();
+        res.render('./kaipaste/admin/index', { theme: theme, u: findUser, paste: kP });
+    });
+});
+
+a.post('/remove/:id', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=' + req.originalUrl);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return res.sendStatus(401);
+        let kP = await text.findOne({ _id: req.params.id });
+        if (!kP) return error404(req, res);
+        if (kP.removed) return res.status(500).json({ OK: false, error: { message: `Paste is already removed.`, status: 500 }, code: 1289 });
+        await text.updateOne({ _id: kP._id }, { $set: { removed: true } }).then(() => {
+            return res.redirect('/kaipaste/admin');
+        });
+    });
+});
+
+a.post('/add/:id', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=' + req.originalUrl);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return res.sendStatus(401);
+        let kP = await text.findOne({ _id: req.params.id });
+        if (!kP) return error404(req, res);
+        if (!kP.removed) return res.status(500).json({ OK: false, error: { message: `Paste is already added.`, status: 500 }, code: 1289 });
+        await text.updateOne({ _id: kP._id }, { $set: { removed: false } }).then(() => {
+            return res.redirect('/kaipaste/admin');
+        });
+    });
+});
+
+a.post('/:user/:id/remove', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 1891 });
+        let kP = await text.findOne({ id: req.params.id, user: req.params.user });
+        if (!kP) return res.status(404).json({ OK: false, error: { message: `Could not find Paste`, status: 404 } });
+        if (findUser._id === kP.user) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 1786 });
+        if (kP.removed) return res.status(500).json({ OK: false, error: { message: `Paste is already removed.`, status: 500 }, code: 1289 });
+        await text.updateOne({ _id: kP._id }, { $set: { removed: true } }).then(() => {
+            return res.redirect('/account');
+        });
+    });
+});
+
+a.get('/:id/edit', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=' + req.originalUrl);
+        let kP = await text.findOne({ id: req.params.id });
+        if (!kP) return error404(req, res);
+
+        if (findUser._id == kP.user) return res.render('./kaipaste/edit', { theme: theme, u: findUser, text: kP });
+        res.sendStatus(401);
+    });
+});
+
+// This request makes the changes.
+a.post('/:id/edit', async function (req, res) {
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        let error = { message: `Could not authenticate request`, status: 401 };
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error, code: 1891 });
+        if (!findUser) return res.status(401).json({ OK: false, error, code: 8712 });
+        let kP = await text.findOne({ _id: req.params.id });
+        if (!kP) return error404(req, res);
+
+        if (findUser._id == kP.user) {
+            await text.updateOne({ _id: kP._id }, { $set: { description: req.body.text } }).then(() => { res.redirect(`/kaipaste/${kP.id}`) });
+        } else {
+            res.sendStatus(401);
+        };
+    });
 });
 
 a.get('/:id', async function (req, res) {
@@ -58,154 +180,18 @@ a.get('/:id', async function (req, res) {
     });
 });
 
-a.get('/remove/:id', async function (req, res) {
-    let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null;
-    if (!check_user) return res.redirect('/');
-    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
-    let kP = await text.findOne({ id: req.params.id });
-    if (!kP) return res.status(404).render('./error/index', { theme: theme, errorMessage: `Could not find paste.` });
-    res.render('./kaipaste/admin/remove', { theme: theme, u: check_user, paste: kP });
-});
-
-a.post('/remove', async function (req, res) {
-    let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null;
-    if (!check_user) return error404(req, res);
-    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
-    // ENC PASS:
-    var parse_pass = crypto.enc.Utf8.parse(req.body.pass);
-    var enc_pass = crypto.enc.Base64.stringify(parse_pass);
-    if (check_user.pass !== enc_pass) return error404(req, res);
-    let kP = await text.findOne({ id: req.body.id });
-    if (!kP) return error404(req, res);
-    if (kP.removed) return res.status(404).json({ 'OK': false, error: `Paste is already removed.` });
-    await text.updateOne({ _id: kP._id }, { $set: { removed: true } }).then(() => {
-        return res.json({ 'OK': true, message: `Removed paste.` });
-    });
-});
-
-a.get('/add/:id', async function (req, res) {
-    let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null;
-    if (!check_user) return res.redirect('/');
-    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
-    let kP = await text.findOne({ id: req.params.id });
-    if (!kP) return res.status(404).render('./error/index', { theme: theme, errorMessage: `Could not find paste.` });
-    res.render('./kaipaste/admin/add', { theme: theme, u: check_user, paste: kP });
-});
-
-a.post('/add', async function (req, res) {
-    let check_user = await user.findOne({ auth_key: req.cookies.auth_key, _id: req.cookies.auth });
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null;
-    if (!check_user) return error404(req, res);
-    if (checkPerm(check_user.userid) !== "ADMIN") return error404(req, res);
-    // ENC PASS:
-    var parse_pass = crypto.enc.Utf8.parse(req.body.pass);
-    var enc_pass = crypto.enc.Base64.stringify(parse_pass);
-    if (check_user.pass !== enc_pass) return res.status(404).json({ "OK": false, error: `Auth failed.` });
-    let kP = await text.findOne({ id: req.body.id });
-    if (!kP) return res.status(404).json({ 'OK': false, error: `Could not find paste.` });
-    if (!kP.removed) return res.status(404).json({ 'OK': false, error: `Paste wasnt removed.` });
-    await text.updateOne({ _id: kP._id }, { $set: { removed: false } }).then(() => {
-        return res.json({ 'OK': true, message: `Added paste.` });
-    });
-});
-
 a.get('/:user/:id', async function (req, res) {
-    let findUser = { user: req.params.user, id: req.params.id }
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
-    await text.findOne(findUser, async function (err, re) {
-        if (err) return res.send(err);
-        if (re == null) return error404(req, res);
-        if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
-        res.write(re.description);
-        res.send();
+    await user.findOne({ officialName: req.params.user.toUpperCase() }, async function (e, r) {
+        await text.findOne({ user: r._id, id: req.params.id }, async function (err, re) {
+            if (err) return res.send(err);
+            if (re == null) return error404(req, res);
+            if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: null, log: false, theme: theme });
+            res.write(re.description);
+            res.send();
+        });
     });
-});
-
-a.post('/:user/:id/remove', async function (req, res) {
-    let userid = req.cookies.token;
-    let username = req.cookies.userName;
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null
-    if (userid && username) {
-        let check_user = await user.findOne({ userid: userid, user: username });
-        if (check_user == null) {
-            res.clearCookie("token");
-            res.clearCookie("userName");
-            res.redirect('/');
-        } else {
-            await text.findOne({ id: req.params.id, user: req.params.user, userID: userid }, async function (err, re) {
-                if (err) return res.send(err);
-                if (re == null) return res.status(404).render('./error/index', { errorMessage: `Could not find KaiPaste`, u: null, log: false, theme: theme });
-                if (re.removed) return res.status(404).render('./error/index', { errorMessage: `KaiPaste cannot be removed again.`, u: null, log: false, theme: theme });
-                await text.updateOne({ _id: re._id }, { $set: { removed: true } }).then(() => {
-                    res.render('./error/index', { errorMessage: `Succesfully removed '${re.title}'.`, u: null, log: false, theme: theme });
-                }).catch((e) => {
-                    console.log(e)
-                    res.status(500).send(`There was an error.`);
-                });
-            });
-        }
-        } else {
-           res.render('./error/index', { errorMessage: `You need to be logged in to access this page.`, u: null, log: false, theme: theme });
-        }
-});
-// This loads the edit page. This does NOT edit the actual file.
-a.post('/:user/:id/edit', async function (req, res) {
-    let userid = req.cookies.token;
-    let username = req.cookies.userName;
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null
-    if (userid && username) {
-        let check_user = await user.findOne({ userid: userid, user: username });
-        if (check_user == null) {
-            res.clearCookie("token");
-            res.clearCookie("userName");
-            res.redirect('/');
-        } else {
-            await text.findOne({ id: req.params.id, user: req.params.user, userID: userid }, async function (err, re) {
-                if (err) return res.send(err);
-                if (re == null) return res.status(404).render('./error/index', { errorMessage: `Could not find KaiPaste`, u: null, log: false, theme: theme });
-                if (re.removed) return res.status(404).render('./error/index', { errorMessage: `KaiPaste cannot be removed again.`, u: null, log: false, theme: theme });
-                res.render('./kaipaste/edit', { u: check_user, log: true, theme: theme, text: re });
-            });
-        }
-        } else {
-           res.render('./error/index', { errorMessage: `You need to be logged in to access this page.`, u: null, log: false, theme: theme });
-        }
-});
-// This request makes the changes.
-a.post('/:title/:id/edit-t', async function (req, res) {
-    let userid = req.cookies.token;
-    let username = req.cookies.userName;
-    let theme = req.cookies.Theme;
-    if (!theme) theme = null
-    if (userid && username) {
-        let check_user = await user.findOne({ userid: userid, user: username });
-        if (check_user == null) {
-            res.clearCookie("token");
-            res.clearCookie("userName");
-            res.redirect('/');
-        } else {
-            await text.findOne({ id: req.params.id, title: req.params.title, userID: userid, user: username }, async function (err, re) {
-                if (err) return res.send(err);
-                if (re == null) return res.status(404).render('./error/index', { errorMessage: `Could not find KaiPaste`, u: null, log: false, theme: theme });
-                if (re.removed) return res.status(404).render('./error/index', { errorMessage: `KaiPaste cannot be removed again.`, u: null, log: false, theme: theme });
-                await text.updateOne({ _id: re._id }, { $set: { description: `${req.body.text}` } }).then(() => {
-                    res.redirect('/kaipaste/' + re.id);
-                });
-            });
-        }
-        } else {
-           res.render('./error/index', { errorMessage: `You need to be logged in to access this page.`, u: null, log: false, theme: theme });
-        }
 });
 
 module.exports = a;

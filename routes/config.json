@@ -1,5 +1,5 @@
 {
-    "Url": false,
+    "Url": true,
     "debug": false,
     "errors": {
         "404": "This page was not found."

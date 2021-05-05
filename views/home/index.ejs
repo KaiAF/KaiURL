@@ -26,10 +26,16 @@
                 </div>
                 <button class="form-button" type="submit">Shrink</button>
             </form>
-        </div>
+        </div><% if (news) { %>
+        <br><br>
+        <div class="center-container">
+            <h3>News:</h3>
+            <h4><%- news.title %></h4>
+            <p><%- news.body %></p>
+            <small><a href="/news/<%-news.id%>" target="_">Direct URL</a></small>
+        </div><% } %>
         </center>
         </div>
     </div>
 </body>
 </html>
-<script defer src="/js/form.js"></script>

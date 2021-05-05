@@ -315,20 +315,26 @@ a.button {
   text-decoration: none;
 }
 
-.code {
-  background-color: rgb(24, 24, 31);
-  padding: 2px 0px 2px 0px;
-  max-width: 35%;
-  min-width: 20%;
-  word-wrap: break-word;
-  font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New;
+kbd {
+  background-color: #333;
+  border-radius: 3px;
+  border: 1px solid #727272;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(63, 63, 63, 0.7) inset;
+  color: #eee;
+  display: inline-block;
+  font-size: .85em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  white-space: nowrap;
 }
+
 
 span.button a {
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 600;
   font-size: 1em;
-  padding: 5px 12px;
+  padding: 8px 12px 7.5px;
   margin: 10px 0;
 
   color: #ffffff;
@@ -346,7 +352,7 @@ span.button a:hover {
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 600;
   font-size: 1em;
-  padding: 5px 12px;
+  padding: 8px 12px 7.5px;
   margin: 10px 0;
 
   color: #ffffff;
@@ -357,4 +363,16 @@ span.button a:hover {
 
   cursor: pointer;
   outline: none;
+}
+
+.searchBar {
+  width: 100%;
+  max-width: 525px;
+  padding: 0.5em;
+  outline: none;
+  border: 1px solid #575757;
+  border-radius: 4px;
+  background: #2f2f2f;
+  color: white;
+  transition: background 0.5s;
 }

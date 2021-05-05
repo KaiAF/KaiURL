@@ -1,5 +1,6 @@
 const a = require('express').Router();
 const date = require('timeago.js');
+const fetch = require('node-fetch');
 const { checkPerm } = require('../permissions');
 const { error404 } = require('../errorPage');
 
@@ -7,66 +8,75 @@ const user = require('../db/user');
 const changelog = require('../db/changelog');
 
 a.get('/', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let auth = req.cookies.auth;
-    let auth_key = req.cookies.auth_key;
-    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
-    if (checkUser == null) checkUser = null
-    let change = await changelog.find({}).sort({ date: -1 });
-    res.render('./changelog/index', { theme: theme, u: checkUser, c: change, d: date });
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        let change = await changelog.find({}).sort({ date: -1 });
+        res.render('./changelog/index', { theme: theme, u: findUser, c: change, d: date });
+    });
 });
 
 a.get('/new', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let auth = req.cookies.auth;
-    let auth_key = req.cookies.auth_key;
-    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
-    if (checkUser == null) return error404(req, res);
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
-    res.render('./changelog/new', { theme: theme, u: checkUser });
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect(`/login?redirect=${req.originalUrl}`);
+        if (await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res);
+        res.render('./changelog/new', { theme: theme, u: findUser });
+    });
 });
 
 a.post('/new', async function (req, res) {
-    let auth = req.cookies.auth;
-    let auth_key = req.cookies.auth_key;
-    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
+    let {theme, auth} = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = ""
     
-    if (checkUser == null) return res.status(403).json({ "OK": false, error: `Only admins can access this.` });
-    if (await checkPerm(checkUser.userid) !== "ADMIN") return error404(req, res);
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 1781 });
+        if (!findUser) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 8912 });
+        if (await checkPerm(findUser.userid) !== "ADMIN") return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 15621 });
+        let { version, title, changes } = req.body;
+        if (!changes) return res.status(500).json({ "OK": false, error: `Missing Field "changes"` })
+        if (!title) return res.status(500).json({ "OK": false, error: `Missing Field "title"` })
+        if (!version) return res.status(500).json({ "OK": false, error: `Missing Field "version"` })
 
-    let vName = req.body.version;
-    let title = req.body.title;
-    let changes = req.body.changes;
-
-    if (!changes) return res.status(500).json({ "OK": false, error: `Missing Field "changes"` })
-    if (!title) return res.status(500).json({ "OK": false, error: `Missing Field "title"` })
-    if (!vName) return res.status(500).json({ "OK": false, error: `Missing Field "version"` })
-
-    let id = Math.random().toString(35).substring(5);
-    new changelog({
-        title: title,
-        description: changes,
-        version: vName,
-        date: Date.now(),
-        Id: id
-    }).save();
-
-    return res.json({ "OK": true, error: null });
-})
+        let id = Math.random().toString(35).substring(5);
+        new changelog({
+            title: title,
+            description: changes,
+            version: vName,
+            date: Date.now(),
+            Id: id
+        }).save();
+        return res.json({ "OK": true });
+    });
+});
 
 a.get('/:id', async function (req, res) {
-    let theme = req.cookies.Theme;
+    let {theme, auth} = req.cookies;
     if (!theme) theme = null;
-    let auth = req.cookies.auth;
-    let auth_key = req.cookies.auth_key;
-    let checkUser = await user.findOne({ _id: auth, auth_key: auth_key });
-    if (checkUser == null) checkUser = null
-    await changelog.findOne({ Id: req.params.id }, async function (err, re) {
-        if (err) return console.log(err);
-        if (re == null) return error404(req, res);
-        if (re) return res.render('./changelog/change', { theme: theme, u: checkUser, c: re, d: date });
+    if (!auth) auth = ""
+    
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get', headers: { 'user-agent': "KaiURL.xyz Auth" } }).then(async (r) => r.json()).then(async (b) => {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        await changelog.findOne({ Id: req.params.id }, async function (e, r) {
+            if (!r) return error404(req, res);
+            res.render('./changelog/change', { theme: theme, u: findUser, c: r, d: date });
+        });
     });
 });
 

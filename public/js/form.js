@@ -72,9 +72,9 @@ $("#form-username").on("keyup", function(e) {
         } else {
             if (g.innerText) {
                 g.innerText = ""
-                g.append(b.error);
+                g.append(b.error.message);
             } else {
-                return g.append(b.error);
+                return g.append(b.error.message);
             }
         }
     });
@@ -159,16 +159,17 @@ $('#form-changelogNew').submit(function(event, type) {
     changelogNew(formData)
 });
 
-// /api/dashboard
+// /dashboard
 
 $('#form-api').submit(function(e) {
     e.preventDefault();
     const formData = new URLSearchParams(`token=${getCookie('token')}`); //new URLSearchParams(new FormData(this));
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((b) => {
-        let url = b.Url
-        if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
-        if (b.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
-        if (b.debug == true && url == "http://localhost") url = "http://localhost:3000"
+        let url;
+        if (b.Url == true) url = "https://www.kaiurl.xyz";
+        if (b.Url == false) url = "http://localhost"
+        if (b.debug == false && b.Url == false) url = "https://api.kaiurl.xyz";
+        if (b.debug == true && url == b.Url == false) url = "http://localhost:3000"
         fetch(`${url}/key/generate`, {
             method: 'POST',
             body: formData
@@ -236,10 +237,10 @@ function shrink(formData, type, auth, auth_key) {
     if (type == false) a = "/shrink";
     if (type == true) a = `/shrink/private/${auth}?q=${auth_key}`
     fetch('/config.json', { method: 'get' }).then((r) => r.json()).then((re) => {
-        let url = re.Url
-        if (url == "https://www.kaiurl.xyz") url = "https://api.kaiurl.xyz";
-        if (re.debug == false && url == "http://localhost") url = "https://api.kaiurl.xyz";
-        if (re.debug == true && url == "http://localhost") url = "http://localhost:3000"
+        let url;
+        if (re.Url == true) url = "https://api.kaiurl.xyz";
+        if (re.debug == false && re.Url == false) url = "https://api.kaiurl.xyz";
+        if (re.debug == true && url == re.Url == false) url = "http://localhost:3000";
         fetch(`${url}${a}`, {
             method: 'post',
             body : formData,

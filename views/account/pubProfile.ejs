@@ -1,72 +1,59 @@
-<% let verified; %>
-<% let admin; %>
-<% let owner; %>
-<% let bFix; %>
-<% if (user.perms == "OWNER") owner = "Owner"; %>
-<% if (user.perms == "ADMIN") admin = "Admin"; %>
-<% if (user.perms == "MOD") mod = "Moderator"; %>
-<% if (user.perms == "BUG-HUNTER") bFix = "Bug Hunter"; %>
-<% if (user.perms == "VERIFIED") verified = " ✔" %>
-<% if (user.perms !== "OWNER") owner = ""; %>
-<% if (user.perms !== "ADMIN") admin = ""; %>
-<% if (user.perms !== "MOD") mod = ""; %>
-<% if (user.perms !== "BUG-HUNTER") bFix = ""; %>
-<% if (user.perms !== "VERIFIED") verified = "" %>
-<%
-    name = user.user;
-    let Cname = user.user.toUpperCase();
-    let i;
-    let result;
-        for (i = 0; i < Name.name.length; i++) {
-            if (Name.name[i] == Cname) result = true
-        }
-    if (result == true) name = "Blocked Name."
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><% if (owner) { %>
-    <%- include('../meta/index', { page: name + " ✔ (Owner)", url: `user/${user.user}` }); %><% } else if (admin) { %>
-    <%- include('../meta/index', { page: name + " ✔ (Admin)", url: `user/${user.user}` }); %><% } else if (mod) { %>
-    <%- include('../meta/index', { page: name + " ✔ (Moderator)", url: `user/${user.user}` }); %><% } else if (bFix) { %>
-    <%- include('../meta/index', { page: name + " ✔ (Bug Hunter)", url: `user/${user.user}` }); %><% } else { %>
-    <%- include('../meta/index', { page: name + verified, url: `user/${user.user}` }); %><% } %>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: `${user.user}'s Profile!`, url: `user/${user.userid}` }); %>
+    <link rel="stylesheet" href="/css/popUp_badge.css">
 </head>
 <body>
-<div id="sideBar" class="sidebar">
-<%- include('../header/index', { page: "/user/" + user.user, pageName: "Home" }) %>
-</div>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/user/" + user.userid, pageName: "Home" }) %>
+    </div>
     <div id="main">
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
+        <div class="main"><% if (!user.removed) { %>
+            <center>
+                <div class="center-container"><% if (!privacy || privacy.hideRole == false) { if (user.perms == "OWNER" || user.perms == "DEV") { %>
+                    <h2><div class="popup" onclick="myFunction()">
+                        <span class="popuptextDev" id="myPopup"><%= user.user %> is a developer for KaiURL.xyz. If you want to become a developer, <a href="/jobs/dev">apply here</a>.</span>
+                        <p class="role">Developer <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="The developer of the site!"></p>
+                    </div></h2><% } else if (user.perms == "ADMIN") { %>
+                    <h2><div class="popup" onclick="myFunction()">
+                        <span class="popuptextRole" id="myPopup"><%= user.user %> is an Admin for KaiURL.xyz.</span>
+                        <p class="role">Admin <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="The Admin of the site!"></p>
+                    </div></h2><% } else if (user.perms == "BUG-HUNTER") { %>
+                    <h2><div class="popup" onclick="myFunction()">
+                        <span class="popuptextRoleBig" id="myPopup"><%= user.user %> is a Bug Hunter for KaiURL.xyz. You can get this by reporting bugs!</span>
+                        <p class="role">Bug Hunter <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="A bug hunter for the site!"></p>
+                    </div></h2><% } else if (user.perms == "VERIFIED") { %>
+                    <h2><div class="popup" onclick="myFunction()">
+                        <span class="popuptextRole" id="myPopup"><%= user.user %> is a verified user.</span>
+                        <p class="role">Verified <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="A verified user for the site!"></p>
+                    </div></h2><% }} %><% if (image) { %>
+                    <img src="/avatar/<%= user.userid %>.png" alt=" <%- user.user %>'s Avatar" width="120px" height="120px" style="border-radius: 25%;">
+                    <% } %><% if (!user.nickname) { %>
+                    <h2 class="bold"><a href="/user/<%-user.userid%>"><%= user.user %></a></h2><% } else { %><h2 class="bold"><a href="/user/<%-user.userid%>"><%= user.nickname %></a></h2><%}%><% if (user.description) { %>
+                    <p><%= user.description %></p><% }; if (!privacy || privacy && privacy.hideUrls == false) { %>
+
+                    <p>Number of URLs:<br><%=uUrl.length%></p><% }; if (admin) { %>
+                    <a href="/account/edit/<%= user.userid %>">Admin Edit</a><% } else if (u && u.userid == user.userid) { %>
+                    <a href="/account/edit">Edit Account</a><% } %>
+                </div>
+            </center>
+        </div><% } else { %>
         <div class="main">
             <center>
                 <div class="center-container">
-                    <% if (owner) { %><h2><p class="role">Owner <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } else if (admin) { %>
-                    <h2><p class="role">Admin <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } else if (mod) { %>
-                    <h2><p class="role">Moderator <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } else if (bFix) { %>
-                    <h2><p class="role">Bug Hunter <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } else if (verified) { %>
-                    <h2><p class="role">Verified <img style="width: 25px; height: 25px; border-radius: 50%;" src="/image/check.png" alt="This user is verified."></p></h2><% } %>
-                    <% if (image) { %>
-                    <img src="/avatar/<%-user.userid %>.png" alt="<%- user.user %>'s Avatar" width="120px" height="120px" style="border-radius: 25%;"><% } %>
-                    <h2 class="bold"><%=name%></h2><%if(user.description) { %>
-                    <p><%= user.description %></p><%}%>
-                    <p>Number of URLs:<br><%=uUrl.length%></p><% if (u && u.userid === user.userid) { %>
-                    <a href="/account">View account details</a><% }; if (checkPerm == "ADMIN") { %>
-                    <a href="/account/edit/<%- user.userid %>">Admin Edit</a><% } %>
-                </div><% if (user.twitter || user.youtube || user.discord || user.glimesh) { %><br>
-                <div class="center-container">
-                    <p>Links:</p><% if (user.twitter) { %>
-                    <p><a href="https://twitter.com/<%= user.twitter %>" target="_" class="link">Twitter</a></p><% } if (user.youtube) { %>
-                    <p><a href="https://www.youtube.com/<%= user.youtube %>" target="_" class="link">Youtube</a></p><% } if (user.discord) { %>
-                    <p><%= user.discord %></p><% } if (user.glimesh) { %>
-                    <p><a href="https://glimesh.tv/<%= user.glimesh %>" target="_" class="link">Glimesh</a></p><% } %>
-                </div><% } %>
+                    <p><%- user.user%> was removed by an admin for "<%- user.reason %>".</p>
+                    <small>If you think this was a mistake <a href="/contact">contact me.</a></small>
+                </div>
             </center>
+        </div><% } %>
     </div>
-</div>
 </body>
 </html>
+<script defer src="/js/popUp.js"></script>

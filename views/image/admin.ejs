@@ -17,16 +17,16 @@
         <div class="main">
             <%- image._id %>
             <% if (!image.removed) { %>
-                <form action="/i/<%- image.filename %>/delete" method="post" class="form">
+                <form action="/i/<%- image.md5 %>/delete" method="post" class="form">
                     <button class="form-button">Delete</button>
                 </form>
             <% } else { %>
-                <form action="/i/<%- image.filename %>/add" method="post" class="form">
+                <form action="/i/<%- image.md5 %>/add" method="post" class="form">
                     <button class="form-button">Add</button>
                 </form>
             <% } %>
             <% if (image.contentType == "image/png" || image.contentType == "image/jpeg") { %>
-                <img src="/i/<%- image.filename %>/embed" alt="Image" width="120" height="120">
+                <img src="/i/<%- image.filename %>/embed" alt="Image" height="240px" width="240px">
                 <br>
             <% } else { %>
                 <p><%- image.contentType %></p>
@@ -34,7 +34,7 @@
             <% if (image.removed) { %>
                 <a href="/i/<%- image.filename %>/embed">(Direct URL)</a>
                 <% if (u.role == "Owner") { %>
-                    <form action="/i/<%-image.filename%>/delete/admin" method="post" class="form">
+                    <form action="/i/<%-image.md5%>/delete/admin" method="post" class="form">
                         <button class="form-button">Owner Delete!</button>
                     </form>
                 <% } %>

@@ -15,11 +15,13 @@
     </div>
     <div class="container">
         <div class="main"><% if (u.perms !== "OWNER" && userPerm == "ADMIN") { %>
-            <p>Can't see other Admins information..</p><% } else { %>
+            <% if (u.userid === user.userid) { %>
+                <p>New feature coming soon.</p>
+            <% } else { %><p>Can't see other Admins information..</p><% }} else { %>
             <center><% let perms; if (user.perms == null) {perms = "Member"} else { perms = user.perms }; %>
                 <div class="center-container">
                     Username: <%- user.user %><br>
-                    Id: <%- user.userid %><br><% if (user.perms !== "ADMIN") { %>
+                    Id: <%- user.userid %><br><% if (u.perms == "OWNER" || user.perms !== "ADMIN") { %>
                     Email: <%- dEmail(user.email) %><br><% } %>
                     Permissions: <%- perms %><br>
                     Join Date: <%- user.joinDate.toUTCString() %>
@@ -28,16 +30,20 @@
                         <select name="option" class="form-input" onchange="onOptionChange()">
                             <option value="username" class="form-input">Change Username</option>
                             <option value="email" class="form-input">Change Email</option>
-                            <option value="perms" class="form-input">Change Permission</option>  
+                            <option value="perms" class="form-input">Change Permission</option><% if (u.perms == "OWNER") { %>
+                            <% if (!user.removed) { %>
+                            <option value="remove" class="form-input">Remove Account</option><% } else { %>
+                            <option value="add" class="form-input">Add Account</option><% }} %>
                         </select>
                         <br> <br>       
                         <input style="display: none;" type="text" name="changeUsername" id="changeUsername" class="form-input" placeholder="Change Username" spellcheck="false" autocomplete="off">
                         <input style="display: none;" type="text" name="changeEmail" id="changeEmail" class="form-input" placeholder="Change Email" spellcheck="false" autocomplete="off">
+                        <input style="display: none;" type="text" name="remove" id="remove" class="form-input" placeholder="Provide a reason." spellcheck="false" autocomplete="off">
                         <select class="form-input" name="changePerms" id="changePerms" style="display: none;">
                             <option value="member">Member</option>
                             <option value="bug-hunter">Bug Hunter</option>
                             <option value="mod">Moderator</option><% if (u.perms == "OWNER") { %>
-                            <option value="verified">Verify</option>
+                            <option value="verified">Verified</option>
                             <option value="admin">Admin</option><% } %>
                         </select>
                         <br>
@@ -45,7 +51,7 @@
                     </form><% } %>
                 </div>
             </center><% } %>
-        </div>
+            </div>
     </div>
 </body>
 </html>
@@ -56,15 +62,28 @@
         if (options == "username") {
             document.getElementById("changeEmail").style.display = 'none';
             document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("remove").style.display = 'none';
             document.getElementById("changeUsername").style.display = 'inline-block';
         } else if (options == "email") {
             document.getElementById("changeUsername").style.display = 'none';
             document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("remove").style.display = 'none';
             document.getElementById("changeEmail").style.display = 'inline-block';
         } else if (options == "perms") {
             document.getElementById("changeUsername").style.display = 'none';
             document.getElementById("changeEmail").style.display = 'none';
+            document.getElementById("remove").style.display = 'none';
             document.getElementById("changePerms").style.display = 'inline-block';
+        } else if (options == "remove") {
+            document.getElementById("changeUsername").style.display = 'none';
+            document.getElementById("changeEmail").style.display = 'none';
+            document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("remove").style.display = 'inline-block';
+        } else if (options == "add") {
+            document.getElementById("changeUsername").style.display = 'none';
+            document.getElementById("changeEmail").style.display = 'none';
+            document.getElementById("changePerms").style.display = 'none';
+            document.getElementById("remove").style.display = 'inline-block';
         }
     }
 </script>

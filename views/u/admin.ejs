@@ -20,22 +20,16 @@
                 <tr><th>Link</th><th>Remove</th></tr>
                 <tbody><% r.forEach(e => { %>
                     <tr>
-                        <td>
-                            <a id="id" class="title" href="/<%= e.short %>" target="__blank" title="<%= e.full %>">https://www.kaiurl.xyz/<%= e.short %>  </a>
-                        </td>
-                        <td><% if (e.removed) { %>
-                        <p id="error" class="error"></p>
-                        <form action="/api/add" method="post" id="form-url-add">
-                            <input type="hidden" name="id" value="<%=e._id%>">
-                            <input type="hidden" name="userId" value="<%=u._id%>">
-                            <button class="form-button">Add</button>
-                        </form><% }else { %>
-                            <p id="error" class="error"></p>
-                            <form action="/api/remove" method="post" id="form-url-remove">
-                                <input type="hidden" name="id" value="<%=e._id%>">
-                                <input type="hidden" name="userId" value="<%=u._id%>">
-                                <button class="form-button">Remove</button>
-                            </form><% } %>
+                        <td><a href="/<%= e.short %>" target="_" title="<%= e.full %>">https://www.kaiurl.xyz/<%= e.short %></a></td>
+                        <td><%if(e.removed){%>
+                            <form class="form" id="form-url-add">
+                                <input type="text" hidden value="<%-e.short%>" name="id">
+                                <button type="submit" class="form-button">Add</button>
+                            </form><%}else{%>
+                            <form class="form" id="form-url-remove">
+                                <input type="text" hidden value="<%-e.short%>" name="id">
+                                <button type="submit" class="form-button">Remove</button>
+                            </form><%}%>
                         </td>
                     </tr><% }); %>
                 </tbody>
@@ -45,4 +39,3 @@
     </div>
 </body>
 </html>
-<script defer src="/js/form.js"></script>

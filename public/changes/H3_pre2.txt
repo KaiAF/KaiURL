@@ -1,0 +1,17 @@
+Added the ability to link Discord accounts to KaiURL accounts. All you have to do is just login to your KaiURL account and go to "/account/edit" and press "Link". This will allow you to log in via your discord account.
+Changed "Login with discord" to "Register with Discord" on the "/register" page.
+Added "/privacy".
+Updated "/:id/find" to redirect to "https://api.kaiurl.xyz/:id".
+Added popUp.js, popUp_badge.css and popUp_overlay.css.
+Fixed password reset email not sending. Now is being sent by the official support email: kai@kaiaf.host.
+Added small information popups on the user page. Just click the "Developer" box on my profile! "/user/Kai"
+Removed "/i/:imagename.png/embed" was removed.
+Added a new Authentication system!
+Fixed private urls not properly updating clicks.
+Added a feature for admins to remove accounts (With a reason).
+Moved "/api/account" "/api/auth/account"
+Updated response information for "/api/user/:name".
+Changed "/account/api/dashboard" to "/account/dashboard".
+Changed "/api/changePassword" to "/passwordReset"
+Changed "/support/report-but" to "/support/report"
+Added a search bar on the "/u" page.

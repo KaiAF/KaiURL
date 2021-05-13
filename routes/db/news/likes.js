@@ -3,8 +3,9 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
     date: Date,
     user: String,
-    id: String,
-    news: String
+    userid: String,
+    liked: String,
+    messageId: String
 });
 
 module.exports = mongoose.model('kaiurlnews-like', userSchema);

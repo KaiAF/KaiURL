@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: 'KaiURL Rooms', url: "room" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/room", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <p class="error" id="error"></p>
+            <form class="form" id="form-create-room">
+                <label for="name" class="form-label">Guild Name:</label>
+                <input type="text" name="name" id="name" class="form-input" autocomplete="off">
+                <button type="submit" class="form-button">Create</button>
+            </form><%if(room[0]){%>
+            <center><br><br>
+                <div class="center-container">
+                    <% room.forEach(e => {%>
+                        <a href="/<%-e.guildOwner%>/<%-e.guildId%>"><%-e.guildName%></a>
+                    <%});%>
+                </div>
+            </center><%}%>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    $('#form-create-room').submit(function (e) {
+        e.preventDefault();
+        const formData = new URLSearchParams(new FormData(this));
+        fetch('/room/create', { method: 'post', body: formData }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true) {
+                window.location.assign(b.redirect);
+            } else {
+                var g = document.getElementById('error');
+                g.innerHTML = b.error.message;
+            };
+        });
+    });
+</script>

@@ -1,0 +1,85 @@
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js" integrity="sha384-LzhRnpGmQP+lOvWruF/lgkcqD+WDVt9fU3H4BWmwP5u5LTmkUGafMcpZKNObVMLU" crossorigin="anonymous"></script>
+<%if(u && room.members.includes(u.userid)){%>
+<script>
+    var socket = io();
+    socket.emit('user.online', `<%-u.userid%>,<%-room.guildId%>`);
+    socket.emit('user.auth', `<%-u.userid%>,<%-room.guildId%>`);
+    
+    setInterval(() => {
+        socket.emit('user.auth', `<%-u.userid%>,<%-room.guildId%>`);
+    }, 15000);
+
+    socket.on('user.auth', function (e) {
+        if (e == false) return window.location.reload(1);
+    });
+
+    $('#form-message').submit(function(e){
+        e.preventDefault();
+        if ($('#m').val() == "") return;
+        socket.emit('user.createMessage', {message: $('#m').val(), user: '<%-u.user%>', userid: '<%-u.userid%>', guildId: '<%-room.guildId%>'});
+        $('#m').val('');
+        return false;
+    });
+
+</script><%}else if(u){%>
+<script>
+    var socket = io();
+    $('#form-room-join').submit(function (e) {
+        e.preventDefault();
+        fetch('/room/<%-room.guildId%>/join', {
+            method: 'post'
+        }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true) {
+                window.location.reload(1);
+            }
+        });
+    });
+    $('#form-message').submit(function(e){
+        e.preventDefault();
+        alert('You must be logged in to message!');
+    });
+</script><%}else{%>
+<script>
+    var socket = io()
+    $('#form-message').submit(function(e){
+        e.preventDefault();
+        alert('You must be logged in to message!');
+    });
+</script><%}%>
+<script>
+    socket.on('user.online.<%-room.guildId%>', function (e) {
+        fetch(`/room/<%-room.guildId%>/${e}/status`, { method: 'get' }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true && b.User.status == 'online') {
+                var g = document.getElementById(`${b.User.id}-status`)
+                g.innerText = `online`
+            }
+        });
+    });
+
+    socket.on('user.offline.<%-room.guildId%>', function (e) {
+        fetch(`/room/<%-room.guildId%>/${e}/status`, { method: 'get' }).then((r)=>r.json()).then((b)=>{
+            console.log('test');
+            if (b.OK == true && b.User.status == 'offline') {
+                var g = document.getElementById(`${b.User.id}-status`)
+                g.innerText = `offline`
+            }
+        });
+    });
+
+    socket.on(`user.newMessage.<%-room.guildId%>`, function (e) {
+        fetch('/room/<%-room.guildId%>/message/' + e, {
+            method: 'get'
+        }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true) {
+                var g = document.getElementById('messages');
+                var h = document.createElement('p');
+                if (b.User.avatar == true) {
+                    h.innerHTML = `<img src="/avatar/${b.User.id}.png" height="60" width="60" style="vertical-align: middle; border-radius: 50%;"> ${b.User.name}: ${b.User.message}`
+                } else {
+                    h.innerHTML = `${b.User.name}: ${b.User.message}`
+                }
+                g.appendChild(h);
+            }
+        });
+    });
+</script>

@@ -21,115 +21,26 @@
                     <h4><%- news.title %></h4>
                     <p><%- news.body %></p>
                     <small>Created <%- time.format(news.date, 'en-us') %> | By <a href="/<%- author.userid %>"><%- author.user %></a></small>
-                    <br><code>Likes: <%- likes.length %></code><% if (u) { %>
-                    <% let likeAuthor = []; likes.forEach(e => { %>
-                        <% likeAuthor.push(e.user); %>
-                    <% }); if (likeAuthor.includes(u.userid)) { %>
-                    <form id="form-news-unlike" class="form" method="post">
-                        <button type="submit" class="form-button">Unlike</button>
-                    </form><% } else { %>
-                    <form id="form-news-like" class="form" method="post">
-                        <button type="submit" class="form-button">Like</button>
-                    </form><% } %>
-                    <form id="form-news-comment" class="form" method="post">
-                        <label for="comment" class="form-label">Comment:</label>
-                        <input type="text" class="form-input" id="comment" name="comment" autocomplete="off">
-                        <button type="submit" class="form-button">Submit</button>
-                    </form><%} else { %>
-                    <br> <br>
-                    <small><a href="/login">You need to be logged in to like and comment</a></small><% } %>
+                    <br><code id="likes">Likes: <%- likes.length %></code>
+                    <br><form class="form" id="form-like">
+                        <%if(u){%><button type="submit" id="like" class="form-button">Like post</button><%}%>
+                    </form>
                 </div>
-                <% if (comment[0]) { %>
-                    <br>
-                    <div class="center-container">
-                        <h5>Comments:</h5>
-                        <% comment.forEach(e => { %>
-                            <p><%- e %></p>
-                        <% }); %>
-                    </div>
-                <% }; %>
+                <br>
+                <div class="center-container">
+                    Comments:
+                    <form id="form-chat" class="form" action=""><%if(u){%>
+                        <input id="input" class="form-input" placeholder="Message" autocomplete="off"> <button class="form-button">Send</button><%}else{%>
+                        <code><a href="/login">You need to be logged in to like and comment.</a></code><%}%>
+                    </form>
+                    <ul id="messages"><% if(comment[0]){ comment.forEach(e => {%>
+                        <p><%-e.user%>: <%-e.message%></p>
+                        <small>Messaged <%-time.format(e.date, 'en-us')%></small><%})};%>
+                    </ul>
+                </div>
             </center>
         </div>
     </div>
 </body>
 </html>
-
-<script defer>
-    $('#form-news-like').submit(function (e) {
-        e.preventDefault();
-        const formData = new URLSearchParams(new FormData(this));
-        fetch('/config.json', { method: 'get' }).then((r) => r.json()).then(function (a) {
-            let url;
-            if (a.Url == false && a.debug == true) url = `http://localhost:3000`;
-            if (a.Url == true && a.debug == false || a.Url == false && a.debug == false) url = `https://api.kaiurl.xyz`;
-            fetch(`${url}/news/like?q=${getCookie('auth')}&id=<%= news.id %>`, {
-                method: 'post',
-                body: formData
-            }).then((r) => r.json()).then(async function (b) {
-                let g = document.getElementById('error');
-                if (b.OK == false) {
-                    if (g.innerHTML) {
-                        g.innerHTML = "";
-                        g.innerHTML = b.error.message;
-                    } else {
-                        g.innerHTML = b.error.message;
-                    }
-                } else {
-                    window.location.reload(1);
-                }
-            });
-        });
-    });
-
-    $('#form-news-comment').submit(function (e) {
-        e.preventDefault();
-        const formData = new URLSearchParams(new FormData(this));
-        fetch('/config.json', { method: 'get' }).then((r) => r.json()).then(function (a) {
-            let url;
-            if (a.Url == false && a.debug == true) url = `http://localhost:3000`;
-            if (a.Url == true && a.debug == false || a.Url == false && a.debug == false) url = `https://api.kaiurl.xyz`;
-            fetch(`${url}/news/comment?q=${getCookie('auth')}&id=<%= news.id %>`, {
-                method: 'post',
-                body: formData
-            }).then((r) => r.json()).then(async function (b) {
-                let g = document.getElementById('error');
-                if (b.OK == false) {
-                    if (g.innerHTML) {
-                        g.innerHTML = "";
-                        g.innerHTML = b.error.message;
-                    } else {
-                        g.innerHTML = b.error.message;
-                    }
-                } else {
-                    window.location.reload(1);
-                }
-            });
-        });
-    });
-
-    $('#form-news-unlike').submit(function (e) {
-        e.preventDefault();
-        const formData = new URLSearchParams(new FormData(this));
-        fetch('/config.json', { method: 'get' }).then((r) => r.json()).then(function (a) {
-            let url;
-            if (a.Url == false && a.debug == true) url = `http://localhost:3000`;
-            if (a.Url == true && a.debug == false || a.Url == false && a.debug == false) url = `https://api.kaiurl.xyz`;
-            fetch(`${url}/news/unlike?q=${getCookie('auth')}&id=<%= news.id %>`, {
-                method: 'post',
-                body: formData
-            }).then((r) => r.json()).then(async function (b) {
-                let g = document.getElementById('error');
-                if (b.OK == false) {
-                    if (g.innerHTML) {
-                        g.innerHTML = "";
-                        g.innerHTML = b.error.message;
-                    } else {
-                        g.innerHTML = b.error.message;
-                    }
-                } else {
-                    window.location.reload(1);
-                }
-            });
-        });
-    });
-</script>
+<%-include('../scripts/socket.io/news/index');%>

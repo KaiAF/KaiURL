@@ -1,0 +1,1 @@
+Changed "Login" to "Log In"

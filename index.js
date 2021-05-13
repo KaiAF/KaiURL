@@ -1,10 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const a = require('express').Router();
 const app = express();
 const mongo = require('mongoose');
 const fetch = require('node-fetch');
-const env = require('dotenv').config();
 const path = require('path');
+/* Socket IO */
+const server = require('http').createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 
 const shorturl = require('./routes/db/shortURL');
 const user = require('./routes/db/user');
@@ -14,6 +18,11 @@ const news = require('./routes/db/news/index');
 const { checkPerm } = require('./routes/permissions');
 const { error404 } = require('./routes/errorPage');
 const { authJWTLogout } = require('./routes/middleware/auth');
+const likes = require('./routes/db/news/likes');
+const comment = require('./routes/db/news/comment');
+const rooms = require('./routes/db/rooms');
+const roomUserStatus = require('./routes/db/rooms/users/status');
+const messages = require('./routes/db/rooms/messages');
 
 console.clear();
 // Mongoose Database. You would need to configure your own Mongo URI.
@@ -47,7 +56,140 @@ app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
 app.use('/jobs', require('./routes/jobs/index')); // Jobs!
 app.use('/news', require('./routes/news/index')); // News!
 app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
+//app.use('/room', require('./routes/chatRoom/index')); // Chat rooms!
+app.use('/capes', require('./routes/capes/index')); // Capes!
 app.use(express.static('public')); // Public code. Like the script files.
+
+//io.on('connection', (socket) => {
+//    const ID = [];
+//    /* Chat Room Stuff */
+//    socket.on('user.online', async (e) => {
+//        let args = e.split(',');
+//        ID.push(`${args[0]}|${args[1]}`); 
+//        await user.findOne({ userid: args[0] }, async function (er, r) {
+//            if (!r) return;
+//            rooms.findOne({ guildId: args[1] }, async function (er, re) {
+//                if (!re) return;
+//                if (re.members.includes(r.userid)) {
+//                    await roomUserStatus.findOne({ userid: r.userid, guildId: args[1] }, async function (er, response) {
+//                        if (!response) {
+//                            new roomUserStatus({
+//                                date: new Date(),
+//                                user: r.user,
+//                                userid: r.userid,
+//                                status: 'online',
+//                                guildId: re.guildId
+//                            }).save().then(()=>{
+//                                io.emit(`user.online.${re.guildId}`, `${r.userid}`);
+//                            });
+//                        } else {
+//                            roomUserStatus.updateOne({ _id: response._id }, { $set: { status: 'online' } }).then(()=>{
+//                                io.emit(`user.online.${re.guildId}`, r.userid);
+//                            });
+//                        };
+//                    });
+//                }
+//            });
+//        });
+//    });
+//    function getSocketCookie(cname) {
+//        var name = cname + "=";
+//        var decodedCookie = decodeURIComponent(socket.handshake.headers.cookie);
+//        var ca = decodedCookie.split(';');
+//        for(var i = 0; i <ca.length; i++) {
+//          var c = ca[i];
+//          while (c.charAt(0) == ' ') {
+//            c = c.substring(1);
+//          }
+//          if (c.indexOf(name) == 0) {
+//            return c.substring(name.length, c.length);
+//          }
+//        }
+//        return "";
+//    }
+//    socket.on('disconnect', async function () {
+//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+//            ID.forEach(async (e) => {
+//                let args = e.split('|');
+//                await rooms.findOne({ guildId: args[1] }, async function (e, r) {
+//                    if (!r) return;
+//                    await roomUserStatus.findOne({ userid: args[0], guildId: r.guildId }, async function (e, re) {
+//                        if (!re) return;
+//                        if (re.status == 'online') {
+//                            roomUserStatus.updateOne({ _id: re._id }, { $set: { status: 'offline' } }).then(()=>{ io.emit(`user.offline.${r.guildId}`, re.userid); });
+//                        }
+//                    });
+//                });
+//            });
+//        });
+//    });
+//    socket.on('user.auth', async function(e) {
+//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, {
+//            method: 'get'
+//        }).then((r)=>r.json()).then(async(b)=>{
+//            let findUser = null;
+//            if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+//            if (b.OK == false && b.code == 12671) return io.emit('user.auth', false);
+//            if (!findUser) return io.emit('user.auth', false);
+//            io.emit('user.auth', true);
+//        });
+//    });
+//    socket.on('user.createMessage', async (msg) => {
+//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, {
+//            method: 'get'
+//        }).then((r)=>r.json()).then(async(b)=>{
+//            let findUser = null;
+//            if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+//            if (b.OK == false && b.code == 12671) return io.emit('user.auth', false);
+//            if (!findUser) return io.emit('user.auth', false);
+//            let messageId = Math.random(1).toFixed(22).substring(2);
+//            let findAvatar = await fetch(`http://${socket.handshake.headers.host}/avatar/${msg.userid}.png`, { method: 'get' })
+//            let avatarBool = false;
+//            if (findAvatar.status == 200) avatarBool = true;
+//            new messages({
+//                date: new Date(),
+//                guildId: msg.guildId,
+//                user: msg.user,
+//                userId: msg.userid,
+//                avatar: avatarBool,
+//                messageId: messageId,
+//                message: msg.message
+//            }).save().then(()=>{
+//                io.emit(`user.newMessage.${msg.guildId}`, `${messageId}`);
+//            });
+//        });
+//    });
+//    /* General comment stuff */
+//    socket.on('message', (message) => {
+//        let msg = message.split('|');
+//        let messageId = Math.random(1).toFixed(18).substring(2);
+//        new comment({
+//            date: new Date(),
+//            user: msg[1],
+//            userid: msg[0],
+//            messagedAt: msg[2],
+//            message: msg[3],
+//            messageId: messageId
+//        }).save().then(() => {
+//            io.emit('message', `${messageId}`);
+//        });
+//    });
+//    socket.on('like', async (like) => {
+//        let data = like.split('|');
+//        let likeId = Math.random(1).toFixed(18).substring(2);
+//        let checkUser = await likes.findOne({ liked: data[2], userid: data[0] });
+//        if (checkUser) return io.emit('error', `You already liked this post!`);
+//        new likes({
+//            date: new Date(),
+//            user: data[1],
+//            userid: data[0],
+//            liked: data[2],
+//            messageId: likeId
+//        }).save().then(() => {
+//            io.emit('newLike', `${likeId}`);
+//        });
+//    });
+//});
 
 a.get('/', async function (req, res) {
     let {theme, auth} = req.cookies;
@@ -265,18 +407,40 @@ a.get('/:Name/:id', async function (req, res) {
     let uA = await userAuth.findOne({ Id: auth });
     if (uA) findUser = await user.findOne({ _id: uA.user });
 
-    await user.findOne({ officialName: req.params.Name.toUpperCase() }, async function (e, r) {
-        if (e) return res.status(500).send(e);
-        if (!r) return error404(req, res);
-        await pvurl.findOne({ short: req.params.id, userID: r.userid }, async function (er, re) {
-            if (!re) return error404(req, res);
-            if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: findUser, theme: theme });
-            let Click = re.clicks;
-            let uClick = ++Click;
-            await pvurl.updateOne({ short: req.params.id }, { clicks: uClick }).then(() => {
-                res.redirect(re.full);
+    await rooms.findOne({ guildOwner: req.params.Name, guildId: req.params.id }, async function (e, response) {
+        if (!response) {
+            await user.findOne({ officialName: req.params.Name.toUpperCase() }, async function (e, r) {
+                if (e) return res.status(500).send(e);
+                if (!r) return error404(req, res);
+                await pvurl.findOne({ short: req.params.id, userID: r.userid }, async function (er, re) {
+                    if (!re) return error404(req, res);
+                    if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: findUser, theme: theme });
+                    let Click = re.clicks;
+                    let uClick = ++Click;
+                    await pvurl.updateOne({ short: req.params.id }, { clicks: uClick }).then(() => {
+                        res.redirect(re.full);
+                    });
+                });
             });
-        });
+        } else {
+            let {theme, auth} = req.cookies;
+            if (!theme) theme = null;
+            if (!auth) auth = ""
+            fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+                let findUser = null;
+                if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+                if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+                let userStatus = await roomUserStatus.find({ guildId: req.params.id });
+                if (!userStatus) userStatus = null;
+                let allUsers = []
+                for (let i = 0; i < response.members.length; i++) {
+                    allUsers.push(await user.findOne({ userid: response.members[i] }));
+                }
+                let findMessages = await messages.find({ guildId: req.params.id });
+                if (!findUser) return res.render('./room/channel', { theme: theme, u: findUser, room: response, userStatus: userStatus, users: allUsers, messages: findMessages });
+                res.render('./room/channel', { theme: theme, u: findUser, room: response, userStatus: userStatus, users: allUsers, messages: findMessages });
+            });
+        }
     });
 });
 
@@ -295,10 +459,12 @@ app.use('/', a);
 app.use(function (err, req, res, next) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
+    if (err.toString().includes('Invalid File type')) return res.status(500).send(err.toString());
     res.status(500).render('./error/index', { theme: theme, u: null, errorMessage: `Error 500! Contact an admin to review this error. <a href="/support">Report here</a> <br> <small>${err.path}</small>` });
     console.log(err);
 });
 
-app.listen(process.env.PORT || 80, function () {
-    console.log(`Website On`);
-});
+server.listen(process.env.PORT || 80);
+//app.listen(process.env.PORT || 80, function () {
+//    console.log(`Website On`);
+//});

@@ -6,6 +6,7 @@ const { error404 } = require('../errorPage');
 const { checkPerm } = require('../permissions');
 const likes = require('../db/news/likes');
 const comments = require('../db/news/comment');
+const comment = require('../db/news/comment');
 const a = require('express').Router();
 
 a.get('/admin', async function (req, res) {
@@ -23,6 +24,19 @@ a.get('/admin', async function (req, res) {
     });
 });
 
+a.get('/:id/comments/:otherId', async function (req, res) {
+    let findChat = await comments.findOne({ messagedAt: req.params.id, messageId: req.params.otherId }).sort({ date: -1 });
+    if (!findChat) return res.status(500).json({ OK: false });
+    res.json({ OK: true, message: findChat });
+});
+
+a.get('/:id/likes/:otherId', async function (req, res) {
+    let countLikes = await likes.countDocuments();
+    let findChat = await likes.findOne({ liked: req.params.id, messageId: req.params.otherId }).sort({ date: -1 });
+    if (!findChat) return res.status(500).json({ OK: false });
+    res.json({ OK: true, message: findChat, number: countLikes });
+});
+
 a.get('/:id', async function (req, res) {
     let {theme, auth} = req.cookies;
     if (!theme) theme = null;
@@ -34,14 +48,9 @@ a.get('/:id', async function (req, res) {
         await news.findOne({ id: req.params.id }, async function (e, r) {
             if (!r) return error404(req, res);
             let author = await user.findOne({ _id: r.user }); if (!author) author = null;
-            let like = await likes.find({ news: r._id }).sort({ date: -1 });
-            let comment = await comments.find({ news: r._id }).sort({ date: -1 }); 
-            let cAuthor = [];
-            for (let i = 0; i < comment.length; i++) {
-                let FindUser = await user.findOne({ userid: comment[i].user });
-                cAuthor.push(`<a href="/${FindUser.userid}">${FindUser.user}:</a> ${comment[i].comment}`);   
-            }
-            res.render('./news/index', { theme: theme, u: findUser, news: r, time: time, author: author, likes: like, comment: cAuthor });
+            let like = await likes.find({ liked: req.params.id }).sort({ date: -1 });
+            let findChat = await comment.find({ messagedAt: req.params.id }).sort({ date: 1 });
+            res.render('./news/index', { theme: theme, u: findUser, news: r, time: time, author: author, likes: like, comment: findChat });
         });
     });
 });

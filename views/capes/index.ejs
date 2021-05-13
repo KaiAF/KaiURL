@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: 'Edit your cape', url: "capes/edit" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: "/capes/edit", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main"><%if(cape.linked == false){%>
+            <h2>No capes were found :(</h2><% let id = cape.Id.split('-');%>
+            <form action="/capes/create?q=<%-id[0]%>&id=<%-cape.capeId%>" method="post" class="form">
+                <button class="form-button">Enable Account</button>
+            </form><%}else{%>
+            <h2>Add a custom cape design:</h2>
+            <form action="/capes/upload/<%-cape.user%>/<%-cape.capeId%>?q=<%let id = cape.Id.split('-');%><%-id[0]%>" method="POST" class="form" enctype="multipart/form-data">
+                <label for="Image" class="form-label">Cape Image:</label>
+                <input type="file" name="File" id="Image" class="form-input"> <br> <br>
+                <button class="form-button">Upload</button>
+            </form>
+            <img src="https://api.kaiurl.xyz/capes/<%-cape.user%>.png" alt=""> <br>
+            
+            <form action="/capes/delete/<%-cape.user%>/<%-cape.capeId%>?q=<%-id[0]%>" method="POST" class="form">
+                <button class="form-button">Delete cape</button>
+            </form><%}%>
+        </div>
+    </div>
+</body>
+</html>

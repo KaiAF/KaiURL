@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../meta/index', { page: room.guildName, url: `${room.guildOwner}/${room.guildId}` }); %>
+    <style>
+      form.message { padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form.message input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form.message button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+      #messages { margin-bottom: 40px }
+    </style>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../header/index', { page: `/${room.guildOwner}/${room.guildId}`, pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <ul class="allUsers" id="allUsers"><% for (let i = 0; i < users.length; i++) { %>
+                <li id="<%-users[i].userid%>-list"><img src="/avatar/<%-users[i].userid%>.png" height="60" width="60" style="vertical-align: middle; border-radius: 50%;"> <%-users[i].user%> <kbd id="<%-users[i].userid%>-status"><%if(userStatus[i]){%><%-userStatus[i].status%><%}else{%>offline<%}%></kbd></li><%}%>
+            </ul>
+            <div id="contents">
+                <ul id="messages"><% messages.forEach(e => {%><% if (e.avatar) {%>
+                    <p id="<%-e.userId%>-message"><img src="/avatar/<%-e.userId%>.png" height="60" width="60" style="vertical-align: middle; border-radius: 50%;"> <%-e.user%>: <%-e.message%></p><%}else{%>
+                    <p id="<%-e.userId%>-message"><%-e.user%>: <%-e.message%></p><%}%>
+                <%});%>
+                </ul>
+                <form class="message" id="form-message">
+                  <input id="m" autocomplete="off" /><button>Send</button>
+                </form><% if (u && !room.members.includes(u.userid)) {%>
+                <form class="form" id="form-room-join"><button type="submit" class="form-button">Join Room</button></form><%}%>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<%-include('../scripts/socket.io/room/index');%>

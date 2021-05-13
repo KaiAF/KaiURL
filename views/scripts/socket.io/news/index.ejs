@@ -1,0 +1,60 @@
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js" integrity="sha384-LzhRnpGmQP+lOvWruF/lgkcqD+WDVt9fU3H4BWmwP5u5LTmkUGafMcpZKNObVMLU" crossorigin="anonymous"></script><%if(u){%>
+<script>
+    var socket = io();
+    var form = document.getElementById('form-chat');
+    var input = document.getElementById('input');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+            socket.emit('message', `<%-u.userid%>|<%-u.user%>|<%-news.id%>|${input.value}`);
+            input.value = '';
+        }
+    });
+    var likeForm = document.getElementById('form-like');
+    console.log(likeForm.children[0].id);
+    likeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        socket.emit('like', `<%-u.userid%>|<%-u.user%>|<%-news.id%>`);
+    });
+    socket.on('error', function (e) {
+        var g = document.getElementById('error');
+        g.innerHTML = e;
+    });
+</script><%}else{%>
+<script>
+    var form = document.getElementById('form-chat');
+    var likeForm = document.getElementById('form-like');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+    });
+    likeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+    });
+</script><%}%>
+<script>
+    var socket = io();
+    socket.on('message', function(msg) {
+        fetch('/news/<%-news.id%>/comments/' + msg, {
+            method: 'get'
+        }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true){
+                var item = document.createElement('p');
+                var time = document.createElement('small');
+                item.textContent = `${b.message.user}: ${b.message.message}`;
+                time.textContent = `Messaged ${b.message.date}`
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        });
+    });
+    socket.on('newLike', function (like) {
+        fetch('/news/<%-news.id%>/likes/' + like, {
+            method:'get'
+        }).then((r)=>r.json()).then((b)=>{
+            if (b.OK == true){
+                var g = document.getElementById('likes');
+                g.innerHTML = `Likes: ${b.number}`;
+            }
+        });
+    });
+</script>

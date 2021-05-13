@@ -4,9 +4,8 @@ const userSchema = new mongoose.Schema({
     date: Date,
     user: String,
     userid: String,
-    messagedAt: String,
-    message: String,
-    messageId: String
+    status: String,
+    guildId: String
 });
 
-module.exports = mongoose.model('kaiurlnews-comment', userSchema);
+module.exports = mongoose.model('kaiurlchatrooms-user-status', userSchema);

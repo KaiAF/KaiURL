@@ -58,7 +58,7 @@ a.post('/new', async function (req, res) {
                 let id = Math.random().toString(35).substring(5);
                 let parseChange1;
                 for (let i = 0; i < b.changes.length; i++) {
-                    parseChange1 += `<ul>${b.changes[i]}</ul>`
+                    parseChange1 += `<li>${b.changes[i]}</li>`
                 }
                 Changes = parseChange1.replace('undefined', '');
                 new changelog({

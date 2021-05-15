@@ -47,20 +47,32 @@ a.post('/new', async function (req, res) {
         if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 1781 });
         if (!findUser) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 8912 });
         if (await checkPerm(findUser.userid) !== "ADMIN") return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 15621 });
-        let { version, title, changes } = req.body;
-        if (!changes) return res.status(500).json({ "OK": false, error: `Missing Field "changes"` })
-        if (!title) return res.status(500).json({ "OK": false, error: `Missing Field "title"` })
+        let { version } = req.body;
         if (!version) return res.status(500).json({ "OK": false, error: `Missing Field "version"` })
 
-        let id = Math.random().toString(35).substring(5);
-        new changelog({
-            title: title,
-            description: changes,
-            version: version,
-            date: Date.now(),
-            Id: id
-        }).save();
-        return res.json({ "OK": true });
+        fetch(`http://${req.hostname}/changes/${version}.json`, {
+            method: 'get'
+        }).then((r)=>r.json()).then((b)=>{
+            if (b.version.toUpperCase() == version.toUpperCase()) {
+                let Title = b.title;
+                let id = Math.random().toString(35).substring(5);
+                let parseChange1;
+                for (let i = 0; i < b.changes.length; i++) {
+                    parseChange1 += `<ul>${b.changes[i]}</ul>`
+                }
+                Changes = parseChange1.replace('undefined', '');
+                new changelog({
+                    title: Title,
+                    description: Changes,
+                    version: b.version,
+                    date: Date.now(),
+                    Id: id
+                }).save();
+                return res.json({ "OK": true });
+            } else {
+                res.json(500).json({ OK: false, error: { message: "Version does not match found changelog" } });
+            }
+        }).catch(e=> { console.log(e); res.json({ OK: false, error: e }) });
     });
 });
 

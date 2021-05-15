@@ -1,0 +1,11 @@
+{
+    "title": "Changed Favicons!",
+    "changes": [
+        "Changed 'Login' to 'Log In'",
+        "Updated Favicon",
+        "Added support for Android and Apple favicons",
+        "Added site.webmanifest",
+        "Updated how Changelogs are made. Now uses '.json'"
+    ],
+    "version": "H3_pre3"
+}

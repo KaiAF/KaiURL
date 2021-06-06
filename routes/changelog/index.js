@@ -7,12 +7,12 @@ const { error404 } = require('../errorPage');
 const user = require('../db/user');
 const changelog = require('../db/changelog');
 
-a.get('/', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -21,12 +21,12 @@ a.get('/', async function (req, res) {
     });
 });
 
-a.get('/new', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/new', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -36,12 +36,12 @@ a.get('/new', async function (req, res) {
     });
 });
 
-a.post('/new', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.post('/new', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `You do not have access to this page.`, status: 401 }, code: 1781 });
@@ -52,7 +52,7 @@ a.post('/new', async function (req, res) {
 
         fetch(`http://${req.hostname}/changes/${version}.json`, {
             method: 'get'
-        }).then((r)=>r.json()).then((b)=>{
+        }).then((r) => r.json()).then((b) => {
             if (b.version.toUpperCase() == version.toUpperCase()) {
                 let Title = b.title;
                 let id = Math.random().toString(35).substring(5);
@@ -72,20 +72,21 @@ a.post('/new', async function (req, res) {
             } else {
                 res.json(500).json({ OK: false, error: { message: "Version does not match found changelog" } });
             }
-        }).catch(e=> { console.log(e); res.json({ OK: false, error: e }) });
+        }).catch(e => { console.log(e);
+            res.json({ OK: false, error: e }) });
     });
 });
 
-a.get('/:id', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/:id', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        await changelog.findOne({ Id: req.params.id }, async function (e, r) {
+        await changelog.findOne({ Id: req.params.id }, async function(e, r) {
             if (!r) return error404(req, res);
             res.render('./changelog/change', { theme: theme, u: findUser, c: r, d: date });
         });

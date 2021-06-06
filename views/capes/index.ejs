@@ -25,7 +25,7 @@
                 <input type="file" name="File" id="Image" class="form-input"> <br> <br>
                 <button class="form-button">Upload</button>
             </form>
-            <img src="https://api.kaiurl.xyz/capes/<%-cape.user%>.png" alt=""> <br>
+            <img src="/capes/view/<%-cape.user%>" alt="<%-cape.user%>'s Custom Cape Design"> <br>
             
             <form action="/capes/delete/<%-cape.user%>/<%-cape.capeId%>?q=<%-id[0]%>" method="POST" class="form">
                 <button class="form-button">Delete cape</button>

@@ -28,11 +28,11 @@ console.clear();
 // Mongoose Database. You would need to configure your own Mongo URI.
 mongo.connect(
     process.env.MONGODB, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false
     }).catch(err => {
-        console.log('There was an error while trying to connect to the DataBase.')
+    console.log('There was an error while trying to connect to the DataBase.')
 });
 
 app.set('view engine', "ejs");
@@ -56,161 +56,32 @@ app.use('/docs', require('./routes/docs/index')); // Documentation for new API.
 app.use('/jobs', require('./routes/jobs/index')); // Jobs!
 app.use('/news', require('./routes/news/index')); // News!
 app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
-//app.use('/room', require('./routes/chatRoom/index')); // Chat rooms!
 app.use('/capes', require('./routes/capes/index')); // Capes!
 app.use(express.static('public')); // Public code. Like the script files.
 
-//io.on('connection', (socket) => {
-//    const ID = [];
-//    /* Chat Room Stuff */
-//    socket.on('user.online', async (e) => {
-//        let args = e.split(',');
-//        ID.push(`${args[0]}|${args[1]}`); 
-//        await user.findOne({ userid: args[0] }, async function (er, r) {
-//            if (!r) return;
-//            rooms.findOne({ guildId: args[1] }, async function (er, re) {
-//                if (!re) return;
-//                if (re.members.includes(r.userid)) {
-//                    await roomUserStatus.findOne({ userid: r.userid, guildId: args[1] }, async function (er, response) {
-//                        if (!response) {
-//                            new roomUserStatus({
-//                                date: new Date(),
-//                                user: r.user,
-//                                userid: r.userid,
-//                                status: 'online',
-//                                guildId: re.guildId
-//                            }).save().then(()=>{
-//                                io.emit(`user.online.${re.guildId}`, `${r.userid}`);
-//                            });
-//                        } else {
-//                            roomUserStatus.updateOne({ _id: response._id }, { $set: { status: 'online' } }).then(()=>{
-//                                io.emit(`user.online.${re.guildId}`, r.userid);
-//                            });
-//                        };
-//                    });
-//                }
-//            });
-//        });
-//    });
-//    function getSocketCookie(cname) {
-//        var name = cname + "=";
-//        var decodedCookie = decodeURIComponent(socket.handshake.headers.cookie);
-//        var ca = decodedCookie.split(';');
-//        for(var i = 0; i <ca.length; i++) {
-//          var c = ca[i];
-//          while (c.charAt(0) == ' ') {
-//            c = c.substring(1);
-//          }
-//          if (c.indexOf(name) == 0) {
-//            return c.substring(name.length, c.length);
-//          }
-//        }
-//        return "";
-//    }
-//    socket.on('disconnect', async function () {
-//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
-//            ID.forEach(async (e) => {
-//                let args = e.split('|');
-//                await rooms.findOne({ guildId: args[1] }, async function (e, r) {
-//                    if (!r) return;
-//                    await roomUserStatus.findOne({ userid: args[0], guildId: r.guildId }, async function (e, re) {
-//                        if (!re) return;
-//                        if (re.status == 'online') {
-//                            roomUserStatus.updateOne({ _id: re._id }, { $set: { status: 'offline' } }).then(()=>{ io.emit(`user.offline.${r.guildId}`, re.userid); });
-//                        }
-//                    });
-//                });
-//            });
-//        });
-//    });
-//    socket.on('user.auth', async function(e) {
-//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, {
-//            method: 'get'
-//        }).then((r)=>r.json()).then(async(b)=>{
-//            let findUser = null;
-//            if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-//            if (b.OK == false && b.code == 12671) return io.emit('user.auth', false);
-//            if (!findUser) return io.emit('user.auth', false);
-//            io.emit('user.auth', true);
-//        });
-//    });
-//    socket.on('user.createMessage', async (msg) => {
-//        fetch(`http://${socket.handshake.headers.host}/api/auth?q=${getSocketCookie('auth')}`, {
-//            method: 'get'
-//        }).then((r)=>r.json()).then(async(b)=>{
-//            let findUser = null;
-//            if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-//            if (b.OK == false && b.code == 12671) return io.emit('user.auth', false);
-//            if (!findUser) return io.emit('user.auth', false);
-//            let messageId = Math.random(1).toFixed(22).substring(2);
-//            let findAvatar = await fetch(`http://${socket.handshake.headers.host}/avatar/${msg.userid}.png`, { method: 'get' })
-//            let avatarBool = false;
-//            if (findAvatar.status == 200) avatarBool = true;
-//            new messages({
-//                date: new Date(),
-//                guildId: msg.guildId,
-//                user: msg.user,
-//                userId: msg.userid,
-//                avatar: avatarBool,
-//                messageId: messageId,
-//                message: msg.message
-//            }).save().then(()=>{
-//                io.emit(`user.newMessage.${msg.guildId}`, `${messageId}`);
-//            });
-//        });
-//    });
-//    /* General comment stuff */
-//    socket.on('message', (message) => {
-//        let msg = message.split('|');
-//        let messageId = Math.random(1).toFixed(18).substring(2);
-//        new comment({
-//            date: new Date(),
-//            user: msg[1],
-//            userid: msg[0],
-//            messagedAt: msg[2],
-//            message: msg[3],
-//            messageId: messageId
-//        }).save().then(() => {
-//            io.emit('message', `${messageId}`);
-//        });
-//    });
-//    socket.on('like', async (like) => {
-//        let data = like.split('|');
-//        let likeId = Math.random(1).toFixed(18).substring(2);
-//        let checkUser = await likes.findOne({ liked: data[2], userid: data[0] });
-//        if (checkUser) return io.emit('error', `You already liked this post!`);
-//        new likes({
-//            date: new Date(),
-//            user: data[1],
-//            userid: data[0],
-//            liked: data[2],
-//            messageId: likeId
-//        }).save().then(() => {
-//            io.emit('newLike', `${likeId}`);
-//        });
-//    });
-//});
-
-a.get('/', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
         let findNews = await news.findOne({}).sort({ date: -1 });
         if (!findNews) findNews = null;
         res.render('./home/index', { u: findUser, theme: theme, news: findNews });
-    }).catch(e => { console.log(e); res.send('Error') });
+    }).catch(e => {
+        console.log(e);
+        res.send('Error')
+    });
 });
 
-a.get('/u', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/u', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
-    
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -219,12 +90,12 @@ a.get('/u', async function (req, res) {
     });
 });
 
-a.get('/u/admin', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/u/admin', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (!findUser || await checkPerm(findUser.userid) !== "ADMIN") return error404(req, res);
@@ -236,12 +107,12 @@ a.get('/u/admin', async function (req, res) {
 
 // Log in / Register
 
-a.get('/login', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/login', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -249,12 +120,12 @@ a.get('/login', async function (req, res) {
     });
 });
 
-a.get('/register', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/register', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -263,19 +134,19 @@ a.get('/register', async function (req, res) {
 });
 
 a.get('/logout', authJWTLogout, clearCookie, (req, res) => {
-    let {q} = req.query;
+    let { q } = req.query;
     if (!q) return res.redirect('/');
     res.redirect(q);
 });
 
 // Uninportant pages
 
-a.get('/contact', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/contact', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -283,12 +154,12 @@ a.get('/contact', async function (req, res) {
     });
 });
 
-a.get('/tos', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/tos', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -296,12 +167,12 @@ a.get('/tos', async function (req, res) {
     });
 });
 
-a.get('/privacy', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/privacy', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -309,12 +180,12 @@ a.get('/privacy', async function (req, res) {
     });
 });
 
-a.get('/about', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/about', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -322,12 +193,12 @@ a.get('/about', async function (req, res) {
     });
 });
 
-a.get('/credit', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/credit', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -335,12 +206,12 @@ a.get('/credit', async function (req, res) {
     });
 });
 
-a.get('/license', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/license', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = ""
 
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -348,14 +219,14 @@ a.get('/license', async function (req, res) {
     });
 });
 
-a.get('/config.json', async function (req, res) {
+a.get('/config.json', async function(req, res) {
     res.sendFile(path.join(__dirname + '/routes/config.json'));
 });
 
 // Change-theme
 
-a.post('/change-theme', async function (req, res) {
-    let {theme} = req.cookies;
+a.post('/change-theme', async function(req, res) {
+    let { theme } = req.cookies;
     if (theme) {
         if (theme == 'dark') {
             res.cookie("theme", "light", { maxAge: 3.154e+10 });
@@ -372,15 +243,15 @@ a.post('/change-theme', async function (req, res) {
 
 // Redirect to FullURL
 
-a.get('/:id', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/:id', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = null;
     let findUser = null;
     let uA = await userAuth.findOne({ Id: auth });
     if (uA) findUser = await user.findOne({ _id: uA.user });
 
-    await shorturl.findOne({ short: req.params.id }, async function (e, r) {
+    await shorturl.findOne({ short: req.params.id }, async function(e, r) {
         if (e) return res.status(500).send(e);
         if (!r) {
             let User = await user.findOne({ officialName: req.params.id.toUpperCase() }) || await user.findOne({ userid: req.params.id });
@@ -399,20 +270,20 @@ a.get('/:id', async function (req, res) {
 
 // Redirect Private URLs
 
-a.get('/:Name/:id', async function (req, res) {
-    let {theme, auth} = req.cookies;
+a.get('/:Name/:id', async function(req, res) {
+    let { theme, auth } = req.cookies;
     if (!theme) theme = null;
     if (!auth) auth = null;
     let findUser = null;
     let uA = await userAuth.findOne({ Id: auth });
     if (uA) findUser = await user.findOne({ _id: uA.user });
 
-    await rooms.findOne({ guildOwner: req.params.Name, guildId: req.params.id }, async function (e, response) {
+    await rooms.findOne({ guildOwner: req.params.Name, guildId: req.params.id }, async function(e, response) {
         if (!response) {
-            await user.findOne({ officialName: req.params.Name.toUpperCase() }, async function (e, r) {
+            await user.findOne({ officialName: req.params.Name.toUpperCase() }, async function(e, r) {
                 if (e) return res.status(500).send(e);
                 if (!r) return error404(req, res);
-                await pvurl.findOne({ short: req.params.id, userID: r.userid }, async function (er, re) {
+                await pvurl.findOne({ short: req.params.id, userID: r.userid }, async function(er, re) {
                     if (!re) return error404(req, res);
                     if (re.removed) return res.render('./error/index', { errorMessage: `This URL was removed.`, u: findUser, theme: theme });
                     let Click = re.clicks;
@@ -423,10 +294,10 @@ a.get('/:Name/:id', async function (req, res) {
                 });
             });
         } else {
-            let {theme, auth} = req.cookies;
+            let { theme, auth } = req.cookies;
             if (!theme) theme = null;
             if (!auth) auth = ""
-            fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async (r) => r.json()).then(async (b) => {
+            fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
                 let findUser = null;
                 if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
                 if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
@@ -449,14 +320,14 @@ function clearCookie(req, res, next) {
     next();
 };
 
-a.get('*', async function (req, res) {
+a.get('*', async function(req, res) {
     error404(req, res);
 });
 
 app.use('/', a);
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
     let theme = req.cookies.Theme;
     if (!theme) theme = null;
     if (err.toString().includes('Invalid File type')) return res.status(500).send(err.toString());

@@ -9,7 +9,7 @@ async function checkPerm(account) {
     if (checkUser.perms == "MOD") msg = "MOD";
     if (checkUser.perms == "BUG-HUNTER") msg = "BUG-HUNTER";
     if (checkUser.perms == null) msg = "MEMBER";
-    
+
     return msg;
 }
 

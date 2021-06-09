@@ -194,7 +194,7 @@ a.post('/create', async function(req, res) {
             let findAuth = r.Id.split('-');
             if (findAuth[0] !== q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
             if (r.capeId !== id) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            capes.updateOne({ _id: r._id }, { $set: { linked: true, Id: null } }).then(() => {
+            capes.updateOne({ _id: r._id }, { $set: { linked: true, Id: null } }).then(async () => {
                 await fetch('https://api.kaiurl.xyz/models/ears/'+findUser.user+'/create', { method:'post' });
                 res.render('./error/index', { theme: theme, u: findUser, errorMessage: `Account is linked. Now press the edit cape button ingame again.` });
             });

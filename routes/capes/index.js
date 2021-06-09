@@ -7,6 +7,7 @@ const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const capeConfig = require('../db/capes/config');
 const capes = require('../db/capes/capes');
+const capeAccount = require('../db/capes/account');
 
 var url = process.env.MONGODB;
 async function checkfName(req, file) {
@@ -115,7 +116,8 @@ a.get('/view/:name', async function (req, res) {
 });
 
 a.get('/edit', async function(req, res) {
-    let { theme, auth, capeId } = req.cookies;
+    let { theme, auth, capeId, sessionId } = req.cookies;
+    let {q} = req.query;
     if (!theme) theme = null;
     if (!auth) auth = ""
     fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
@@ -124,7 +126,6 @@ a.get('/edit', async function(req, res) {
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
         if (!capeId) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
         await capes.findOne({ Id: capeId }, async function(e, r) {
-            let { q } = req.query;
             if (!r || !q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
             let findAuth = r.Id.split('-');
             if (findAuth[0] !== q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
@@ -147,9 +148,11 @@ a.get('/edit/auth', async function(req, res) {
         fetch('https://sessionserver.mojang.com/session/minecraft/profile/' + uuid, {
             method: 'get'
         }).then((r) => r.json()).then(async(b) => {
-            if (b.error) return console.log(b);
+            if (b.error) return res.sendStatus(500);
             await capes.findOne({ uuid: uuid }, async function(e, r) {
                 let capeIdAuth = Math.random().toFixed(20).substring(2);
+                let DATE = r.date.toString().split(' ');
+                let dateTime = `${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
                 if (!r) {
                     new capes({
                         date: new Date(),
@@ -158,21 +161,22 @@ a.get('/edit/auth', async function(req, res) {
                         cape: null,
                         capeId: Math.random(1).toFixed(22).substring(2),
                         linked: false,
-                        Id: `${id}-${capeIdAuth}`
+                        Id: `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`,
+                        sessionId: `${capeIdAuth}${capeIdAuth}${capeIdAuth}${capeIdAuth}`
                     }).save().then(() => {
-                        res.cookie('capeId', `${id}-${capeIdAuth}`);
+                        res.cookie('capeId', `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`);
+                        res.cookie('sessionId', `${capeIdAuth}${capeIdAuth}${capeIdAuth}${capeIdAuth}`)
                         res.redirect('/capes/edit?q=' + id);
                     });
                 } else {
-                    capes.updateOne({ _id: r._id }, { $set: { Id: `${id}-${capeIdAuth}`, cape: `/capes/${b.name}.png` } }).then(() => {
-                        res.cookie('capeId', `${id}-${capeIdAuth}`);
+                    capes.updateOne({ _id: r._id }, { $set: { Id: `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`, cape: `/capes/${b.name}.png`, date: new Date() } }).then(() => {
+                        res.cookie('capeId', `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`);
                         res.redirect('/capes/edit?q=' + id);
                     });
                 }
             });
         }).catch(e => { res.sendStatus(401) });
-    }).catch(e => { console.log(e);
-        res.send('Error') });
+    }).catch(e => { console.log(e); res.sendStatus(500); });
 });
 
 a.post('/create', async function(req, res) {
@@ -191,6 +195,7 @@ a.post('/create', async function(req, res) {
             if (findAuth[0] !== q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
             if (r.capeId !== id) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
             capes.updateOne({ _id: r._id }, { $set: { linked: true, Id: null } }).then(() => {
+                await fetch('https://api.kaiurl.xyz/models/ears/'+findUser.user+'/create', { method:'post' });
                 res.render('./error/index', { theme: theme, u: findUser, errorMessage: `Account is linked. Now press the edit cape button ingame again.` });
             });
         });

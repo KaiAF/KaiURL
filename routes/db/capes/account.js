@@ -4,11 +4,9 @@ const userSchema = new mongoose.Schema({
     date: Date,
     user: String,
     uuid: String,
-    cape: String,
     capeId: String,
-    linked: Boolean,
     Id: String,
-    sessionId: String
+    password: String
 });
 
-module.exports = mongoose.model('mcmCapes-user', userSchema);
+module.exports = mongoose.model('mcmCapes-account', userSchema);

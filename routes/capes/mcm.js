@@ -59,8 +59,9 @@ a.get('/account/:id', async function (req, res) {
                                 scaleY: 1, 
                                 scaleZ: 1
                             }
-                        })
-                        res.json({ OK: true, message: "Linked!" })
+                        }).save().then(()=>{
+                            res.json({ OK: true, message: "Linked!" });
+                        });
                     });
                 });
             });

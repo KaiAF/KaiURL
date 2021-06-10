@@ -2,6 +2,7 @@ const a = require('express').Router();
 const fetch = require('node-fetch');
 const account = require('../db/capes/account');
 const capes = require('../db/capes/capes');
+const ears = require('../db/capes/ears');
 const user = require('../db/user');
 
 a.get('/account', async function (req, res) {
@@ -46,6 +47,19 @@ a.get('/account/:id', async function (req, res) {
                             active: true
                         }
                     }).save().then(()=>{
+                        new ears({
+                            date: new Date(),
+                            user: r.user,
+                            uuid: r.uuid,
+                            ears: null,
+                            earId: Math.random(1).toFixed(22).substring(2),
+                            cfg: {
+                                active: false,
+                                scaleX: 1, 
+                                scaleY: 1, 
+                                scaleZ: 1
+                            }
+                        })
                         res.json({ OK: true, message: "Linked!" })
                     });
                 });

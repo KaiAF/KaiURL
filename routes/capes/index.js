@@ -5,29 +5,12 @@ const multer = require('multer');
 const gridFS = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
-const capeConfig = require('../db/capes/config');
 const capes = require('../db/capes/capes');
-const capeAccount = require('../db/capes/account');
+const account = require('../db/capes/account');
+const user = require('../db/user');
 
 var url = process.env.MONGODB;
-async function checkfName(req, file) {
-    if (file.mimetype === "image/jpeg" || file.mimetype === 'image/png') {
-        return `${file.originalname.replace('.png', '')}.png`;;
-    }
-}
-const storage = new gridFS({
-    url,
-    options: { useUnifiedTopology: true },
-    file: (req, file) => {
-        let name = checkfName(req, file).then((n) => {
-            return {
-                bucketName: 'mcmCapes',
-                filename: `${n}`
-            };
-        });
-        return name;
-    }
-});
+
 async function Filter(req, file, cb) {
     if (!file) return cb(new Error(`Could not find file.`));
     if (file.mimetype == "image/png" || file.mimetype == "image/jpeg") {
@@ -37,21 +20,7 @@ async function Filter(req, file, cb) {
     }
 }
 
-const upload = multer({ storage: storage, fileFilter: Filter });
-
-let gfs;
-let gridFSBucket;
-const conn = mongoose.createConnection(url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false
-});
-conn.once('open', async function() {
-    gridFSBucket = new mongoose.mongo.GridFSBucket(conn.db, { bucketName: 'mcmCapes' });
-    gfs = Grid(conn.db, mongoose.mongo);
-    gfs.collection('mcmCapes');
-});
+const upload = multer({ fileFilter: Filter });
 
 function canvas(image, x, y, w, h) {
     let version = (image.height >= 64 ? 1 : 0);
@@ -115,179 +84,112 @@ a.get('/view/:name', async function (req, res) {
     image.src = `http://api.kaiurl.xyz/capes/${req.params.name}.png`;
 });
 
-a.get('/edit', async function(req, res) {
-    let { theme, auth, capeId, sessionId } = req.cookies;
-    let {q} = req.query;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        if (!capeId) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-        await capes.findOne({ Id: capeId }, async function(e, r) {
-            if (!r || !q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            let findAuth = r.Id.split('-');
-            if (findAuth[0] !== q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            res.render('./capes/index', { theme: theme, u: findUser, cape: r });
-        });
-    }).catch(e => { console.log(e);
-        res.send('Error') });
-});
-
-a.get('/edit/auth', async function(req, res) {
+a.get('/:name/edit', async function (req, res) {
     let { theme, auth } = req.cookies;
     if (!theme) theme = null;
-    if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
+    if (!auth) auth = "";
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then((r) => r.json()).then(async function (b) {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=/capes/'+req.params.name+'/edit');
+        await account.findOne({ linkedUser: findUser.userid, linked: true, user: req.params.name }, async function (e, r) {
+            if (!r) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: "Could not find Linked accounts" });
+            let cape = await capes.findOne({ uuid: r.uuid });
+            res.render('./capes/index', { theme: theme, u: findUser, cape: cape });
+        });
+    });
+});
+
+a.get('/edit/auth', async function (req, res) {
+    let { theme, auth } = req.cookies;
+    if (!theme) theme = null;
+    if (!auth) auth = "";
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then((r) => r.json()).then(async function (b) {
+        let findUser = null;
+        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: "Please log in to create an account: <a href=\"/login\">/login</a>" })
         let { uuid, id } = req.query;
         if (!uuid || !id) return res.sendStatus(401);
-        fetch('https://sessionserver.mojang.com/session/minecraft/profile/' + uuid, {
-            method: 'get'
-        }).then((r) => r.json()).then(async(b) => {
-            if (b.error) return res.sendStatus(500);
-            await capes.findOne({ uuid: uuid }, async function(e, r) {
+        fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`, { method: 'get' }).then((r)=>r.json()).then(async function (re) {
+            if (re.error) return res.status(404).send(re.error);
+            await account.findOne({ uuid: uuid }, async function(e, r) {
                 let capeIdAuth = Math.random().toFixed(20).substring(2);
-                let DATE = r.date.toString().split(' ');
-                let dateTime = `${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
+                let randomCode = Math.random().toString(15).substring(2);
                 if (!r) {
-                    new capes({
+                    new account({
                         date: new Date(),
-                        user: b.name,
-                        uuid: b.id,
-                        cape: null,
-                        capeId: Math.random(1).toFixed(22).substring(2),
-                        linked: false,
-                        Id: `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`,
-                        sessionId: `${capeIdAuth}${capeIdAuth}${capeIdAuth}${capeIdAuth}`
-                    }).save().then(() => {
-                        res.cookie('capeId', `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`);
-                        res.cookie('sessionId', `${capeIdAuth}${capeIdAuth}${capeIdAuth}${capeIdAuth}`)
-                        res.redirect('/capes/edit?q=' + id);
-                    });
+                        user: re.name,
+                        uuid: re.id,
+                        Id: capeIdAuth + capeIdAuth,
+                        code: randomCode,
+                        linkedUser: findUser.userid
+                    }).save().then(()=> { res.render('./capes/account/beforeCreate', { theme: theme, u: findUser, code: randomCode }) });
                 } else {
-                    capes.updateOne({ _id: r._id }, { $set: { Id: `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`, cape: `/capes/${b.name}.png`, date: new Date() } }).then(() => {
-                        res.cookie('capeId', `${id}-${capeIdAuth}${capeIdAuth}${capeIdAuth}`);
-                        res.redirect('/capes/edit?q=' + id);
-                    });
+                    if (r.linked==true) {
+                        res.redirect('/capes/'+r.user+'/edit');
+                    } else {
+                        account.updateOne({ uuid: re.id }, { $set: {
+                            date: new Date(),
+                            user: re.name,
+                            uuid: re.id,
+                            Id: capeIdAuth + capeIdAuth,
+                            code: randomCode,
+                            linkedUser: findUser.userid
+                        } }).then(()=> { res.render('./capes/account/beforeCreate', { theme: theme, u: findUser, code: randomCode }) });
+                    }
                 }
             });
-        }).catch(e => { res.sendStatus(401) });
-    }).catch(e => { console.log(e); res.sendStatus(500); });
+        });
+    });
 });
 
-a.post('/create', async function(req, res) {
-    let { theme, auth, capeId } = req.cookies;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
+a.post('/upload/:name', upload.single('File'), async function (req, res) {
+    let {auth} = req.cookies;
+    if (!auth) auth = "";
+    if (!req.file) return res.redirect('/capes/'+req.params.name+'/edit');
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then((r) => r.json()).then(async function (b) {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
         if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
-        if (!capeId) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-        await capes.findOne({ Id: capeId }, async function(e, r) {
-            let { q, id } = req.query;
-            if (!r || !q || !id) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            let findAuth = r.Id.split('-');
-            if (findAuth[0] !== q) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            if (r.capeId !== id) return res.status(401).render('./error/index', { theme: theme, u: findUser, errorMessage: `Could not authenticate request` });
-            capes.updateOne({ _id: r._id }, { $set: { linked: true, Id: null } }).then(async () => {
-                await fetch('https://api.kaiurl.xyz/models/ears/'+findUser.user+'/create', { method:'post' });
-                res.render('./error/index', { theme: theme, u: findUser, errorMessage: `Account is linked. Now press the edit cape button ingame again.` });
-            });
-        });
-    }).catch(e => { console.log(e);
-        res.send('Error') });
-});
-
-a.post('/upload/:user/:Id', upload.single('File'), async function(req, res) {
-    if (!req.file) return res.status(500).json({ OK: false, error: { message: 'Could not find file' } });
-    let { theme, auth, capeId } = req.cookies;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    if (!capeId) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
-        let findUser = null;
-        if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-        let { q } = req.query;
-        if (!q) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-        await capes.findOne({ user: req.params.user, capeId: req.params.Id, Id: capeId }, async function(e, r) {
-            if (!r) return res.status(401).json({ OK: false, error: { message: `Could not find cape profile` } });
-            fetch('https://api.mojang.com/users/profiles/minecraft/' + r.user, {
-                method: 'get'
-            }).then((r) => r.json()).then(async(b) => {
-                await gfs.files.findOne({ uuid: r.uuid }, async function(e, re) {
-                    if (!re) {
-                        await gfs.files.findOne({ _id: req.file.id }, async function(e, r) {
-                            if (e) return res.status(500).json({ OK: false, error: e });
-                            if (!r) return res.status(500).json({ OK: false, error: 'Could not find File.' });
-                            if (r) {
-                                await gfs.files.updateOne({ _id: r._id }, { $set: { user: b.name.toUpperCase() + ".PNG", uuid: b.id } }).then(() => {
-                                    res.redirect(req.headers.referer);
-                                });
-                            }
-                        });
-                    } else {
-                        gfs.db.collection('mcmCapes.chunks').deleteMany({ files_id: re._id }).then(async() => {
-                            gfs.files.deleteOne({ _id: re._id }).then(async() => {
-                                await gfs.files.findOne({ _id: req.file.id }, async function(e, r) {
-                                    if (e) return res.status(500).json({ OK: false, error: e });
-                                    if (!r) return res.status(500).json({ OK: false, error: 'Could not find File.' });
-                                    if (r) {
-                                        await gfs.files.updateOne({ _id: r._id }, { $set: { user: b.name.toUpperCase() + ".PNG", uuid: b.id } }).then(() => {
-                                            res.redirect(req.headers.referer);
-                                        });
-                                    }
-                                });
-                            }).catch(e => { res.status(500).send(e) });
-                        });
-                    }
+        if (!findUser) return res.redirect('/login?redirect=/capes/'+req.params.name + "/edit");
+        if (!req.file) return res.send('Could not find Image');
+        await account.findOne({ linkedUser: findUser.userid, user: req.params.name }, async function (e, r) {
+            if (!r) return res.status(500).send('Could not find account');
+            let texture = req.file.buffer.toString('base64');
+            await capes.findOne({ uuid: r.uuid }, async function (e, re) {
+                if (!re) return res.sendStatus(500);
+                capes.updateOne({ _id: re._id }, { $set: { cape: texture } }).then(()=>{
+                    res.redirect(`/capes/${r.user}/edit`);
                 });
             });
         });
-    }).catch(e => { console.log(e);
-        res.send('Error') });
+    });
 });
 
-a.post('/delete/:user/:Id', async function(req, res) {
-    let { theme, auth, capeId } = req.cookies;
-    if (!theme) theme = null;
-    if (!auth) auth = ""
-    if (!capeId) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then(async(r) => r.json()).then(async(b) => {
+a.post('/delete/:name', async function (req, res) {
+    let {auth} = req.cookies;
+    if (!auth) auth = "";
+    fetch(`http://${req.hostname}/api/auth?q=${auth}`, { method: 'get' }).then((r) => r.json()).then(async function (b) {
         let findUser = null;
         if (b.OK == true) findUser = await user.findOne({ _id: b.user._id });
-        if (b.OK == false && b.code == 12671) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-        let { q } = req.query;
-        if (!q) return res.status(401).json({ OK: false, error: { message: `Could not authenticate request` } });
-        await capes.findOne({ user: req.params.user, capeId: req.params.Id, Id: capeId }, async function(e, r) {
-            if (!r) return res.status(401).json({ OK: false, error: { message: `Could not find cape profile` } });
-            fetch('https://api.mojang.com/users/profiles/minecraft/' + r.user, {
-                method: 'get'
-            }).then((r) => r.json()).then(async(b) => {
-                await gfs.files.findOne({ uuid: r.uuid }, async function(e, re) {
-                    if (!re) {
-                        res.status(500).json({ OK: false, error: { message: "Could not find cape to remove" } });
-                    } else {
-                        gfs.db.collection('mcmCapes.chunks').deleteMany({ files_id: re._id }).then(async() => {
-                            gfs.files.deleteOne({ _id: re._id }).then(async() => {
-                                res.redirect(req.headers.referer);
-                            }).catch(e => { res.status(500).send(e) });
-                        });
-                    }
+        if (b.OK == false && b.code == 12671) return res.redirect('/logout?q=' + req.originalUrl);
+        if (!findUser) return res.redirect('/login?redirect=/capes/'+req.params.name + "/edit");
+        await account.findOne({ linkedUser: findUser.userid, user: req.params.name }, async function (e, r) {
+            if (!r) return res.status(500).send('Could not find account');
+            await capes.findOne({ uuid: r.uuid }, async function (e, re) {
+                if (!re) return res.sendStatus(500);
+                capes.updateOne({ _id: re._id }, { $set: { cape: null } }).then(()=>{
+                    res.redirect(`/capes/${r.user}/edit`);
                 });
             });
         });
-    }).catch(e => { console.log(e);
-        res.send('Error') });
+    });
 });
 
 a.get('/:user', async function(req, res) {
-    res.redirect('https://api.kaiurl.xyz/capes/' + req.params.user);
+    res.redirect(`https://api.kaiurl.xyz/capes/${req.params.user}.png`);
 });
 
 module.exports = a;

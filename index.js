@@ -57,6 +57,7 @@ app.use('/jobs', require('./routes/jobs/index')); // Jobs!
 app.use('/news', require('./routes/news/index')); // News!
 app.use('/i', require('./routes/image/index')); // ShareX Image hosting service.
 app.use('/capes', require('./routes/capes/index')); // Capes!
+app.use('/mcm', require('./routes/capes/mcm'));
 app.use(express.static('public')); // Public code. Like the script files.
 
 a.get('/', async function(req, res) {
@@ -336,6 +337,3 @@ app.use(function(err, req, res, next) {
 });
 
 server.listen(process.env.PORT || 80);
-//app.listen(process.env.PORT || 80, function () {
-//    console.log(`Website On`);
-//});

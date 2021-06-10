@@ -46,7 +46,8 @@
                 <div class="center-container">
                   <span class="button"><a href="/user/<%- u.userid %>">Public Profile.</a></span> <br> <br>
                   <span class="button"><a href="/account/dashboard">API</a></span>
-                  <span class="button"><a href="/account/files">Files</a></span><% if (u.perms == "ADMIN" || u.perms == "OWNER") { %>
+                  <span class="button"><a href="/account/files">Files</a></span>
+                  <span class="button"><a href="/mcm/account">MCMCapes</a></span><% if (u.perms == "ADMIN" || u.perms == "OWNER") { %>
                   <br> <br>
                   <span class="button"><a href="/kaipaste/admin">KaiPaste Admin</a></span>
                   <span class="button"><a href="/i/admin">File Admin</a></span><% if (u.perms == "OWNER") { %>

@@ -14,22 +14,18 @@
         <button id="nav" class="openbtn" onclick="openNav()">☰</button>
     </div>
     <div class="container">
-        <div class="main"><%if(cape.linked == false){%>
-            <h2>No capes were found :(</h2><% let id = cape.Id.split('-');%>
-            <form action="/capes/create?q=<%-id[0]%>&id=<%-cape.capeId%>" method="post" class="form">
-                <button class="form-button">Enable Account</button>
-            </form><%}else{%>
+        <div class="main">
             <h2>Add a custom cape design:</h2>
-            <form action="/capes/upload/<%-cape.user%>/<%-cape.capeId%>?q=<%let id = cape.Id.split('-');%><%-id[0]%>" method="POST" class="form" enctype="multipart/form-data">
+            <form action="/capes/upload/<%-cape.user%>" method="POST" class="form" enctype="multipart/form-data">
                 <label for="Image" class="form-label">Cape Image:</label>
                 <input type="file" name="File" id="Image" class="form-input"> <br> <br>
                 <button class="form-button">Upload</button>
             </form>
             <img src="/capes/view/<%-cape.user%>" alt="<%-cape.user%>'s Custom Cape Design"> <br>
             
-            <form action="/capes/delete/<%-cape.user%>/<%-cape.capeId%>?q=<%-id[0]%>" method="POST" class="form">
+            <form action="/capes/delete/<%-cape.user%>" method="POST" class="form">
                 <button class="form-button">Delete cape</button>
-            </form><%}%>
+            </form>
         </div>
     </div>
 </body>

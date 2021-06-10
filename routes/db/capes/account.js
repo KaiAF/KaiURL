@@ -6,7 +6,10 @@ const userSchema = new mongoose.Schema({
     uuid: String,
     capeId: String,
     Id: String,
-    password: String
+    password: String,
+    code: String,
+    linkedUser: String,
+    linked: Boolean
 });
 
 module.exports = mongoose.model('mcmCapes-account', userSchema);

@@ -7,8 +7,7 @@ const userSchema = new mongoose.Schema({
     cape: String,
     capeId: String,
     linked: Boolean,
-    Id: String,
-    sessionId: String
+    cfg: Object
 });
 
 module.exports = mongoose.model('mcmCapes-user', userSchema);

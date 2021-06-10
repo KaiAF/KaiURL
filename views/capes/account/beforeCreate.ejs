@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../../meta/index', { page: 'Create your account!', url: "capes/edit/auth" }); %>
+</head>
+<body>
+    <div id="sideBar" class="sidebar">
+        <%- include('../../header/index', { page: "/capes/auth/account", pageName: "" }) %>
+    </div>
+    <div id="main">
+        <button id="nav" class="openbtn" onclick="openNav()">☰</button>
+    </div>
+    <div class="container">
+        <div class="main">
+            <h3>Go back to Minecraft with a Valid Minecraft account. And do this command <code>/link <%-code%></code></h3>
+            <small>This can only work on a Single Player world!</small>
+        </div>
+    </div>
+</body>
+</html>

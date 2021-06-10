@@ -42,7 +42,8 @@ a.get('/account/:id', async function (req, res) {
                         capeId: Math.random(1).toFixed(22).substring(2),
                         linked: true,
                         cfg: {
-                            glow: false
+                            glow: false,
+                            active: true
                         }
                     }).save().then(()=>{
                         res.json({ OK: true, message: "Linked!" })
